@@ -176,7 +176,7 @@ useEffect(() => {
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="Type a message..."
-          className="flex-1 h-9 border border-gray-200 rounded-full px-4 text-sm bg-gray-50 focus:outline-none focus:border-emerald-500"
+          className="flex-1 h-9 border border-gray-200 rounded-full px-4 text-sm bg-gray-50 focus:outline-none focus:border-emerald-500 text-gray-900 placeholder-gray-400"
         />
         <button
           onClick={handleSend}
