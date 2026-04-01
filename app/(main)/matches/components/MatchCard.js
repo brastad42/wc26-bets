@@ -114,21 +114,21 @@ export default function MatchCard({ match, status, userId, bets, users, formatTi
 
       {/* Locked stage: show my bet and points */}
       {status === 'locked' && myBet && (
-        <div className="flex justify-between items-center text-xs bg-amber-50 rounded-lg px-3 py-2 mt-1">
-            <span className="text-gray-600">
+        <div className="grid grid-cols-3 text-xs bg-amber-50 rounded-lg px-3 py-2 mt-1 gap-2">
+          <span className="text-gray-600 text-left truncate">
             {users.find(u => u.id === userId)?.alias || 'You'}
-            </span>
-            <span className="font-medium text-gray-900">
+          </span>
+          <span className="font-medium text-gray-900 text-center">
             {myBet.bet_home} – {myBet.bet_away}
-            </span>
-            {myPoints !== null && (
-            <span className={`font-medium
-                ${myPoints === 3 ? 'text-emerald-600' :
+          </span>
+          {myPoints !== null && (
+            <span className={`font-medium text-right
+              ${myPoints === 3 ? 'text-emerald-600' :
                 myPoints === 1 ? 'text-amber-600' :
                 'text-gray-400'}`}>
-                {myPoints} pts
+              {myPoints} pts
             </span>
-            )}
+          )}
         </div>
         )}
 
@@ -157,7 +157,8 @@ export default function MatchCard({ match, status, userId, bets, users, formatTi
             })
             .map(({ user, bet, pts }) => (
               
-              <div key={user.id} className="grid grid-cols-[1fr_auto_56px] text-xs text-gray-600 bg-gray-50 rounded px-2 py-1 gap-2">
+              <div key={user.id} 
+              className="grid grid-cols-3 text-xs text-gray-600 bg-gray-50 rounded px-2 py-1 gap-2">
                 <span className="truncate">{user.alias}</span>
                 <span className="font-medium text-center">
                   {bet ? `${bet.bet_home} – ${bet.bet_away}` : 'DNS'}
