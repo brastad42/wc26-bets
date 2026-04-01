@@ -120,7 +120,7 @@ export default function ResultManager() {
                   max="99"
                   value={input.home}
                   onChange={(e) => updateInput(match.id, 'home', e.target.value)}
-                  className="w-8 h-8 border border-gray-200 rounded-lg text-center text-sm bg-white focus:outline-none focus:border-emerald-500"
+                  className="w-8 h-8 border border-gray-200 rounded-lg text-center text-sm bg-white focus:outline-none focus:border-emerald-500 text-gray-900"
                 />
                 <span className="text-xs text-gray-300">–</span>
                 <input
@@ -129,7 +129,7 @@ export default function ResultManager() {
                   max="99"
                   value={input.away}
                   onChange={(e) => updateInput(match.id, 'away', e.target.value)}
-                  className="w-8 h-8 border border-gray-200 rounded-lg text-center text-sm bg-white focus:outline-none focus:border-emerald-500"
+                  className="w-8 h-8 border border-gray-200 rounded-lg text-center text-sm bg-white focus:outline-none focus:border-emerald-500 text-gray-900"
                 />
               </div>
 
