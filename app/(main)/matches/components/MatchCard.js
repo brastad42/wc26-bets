@@ -156,12 +156,13 @@ export default function MatchCard({ match, status, userId, bets, users, formatTi
               return ptsB - ptsA
             })
             .map(({ user, bet, pts }) => (
-              <div key={user.id} className="flex justify-between text-xs text-gray-600 bg-gray-50 rounded px-2 py-1">
-                <span>{user.alias}</span>
-                <span className="font-medium">
+              
+              <div key={user.id} className="grid grid-cols-[1fr_auto_56px] text-xs text-gray-600 bg-gray-50 rounded px-2 py-1 gap-2">
+                <span className="truncate">{user.alias}</span>
+                <span className="font-medium text-center">
                   {bet ? `${bet.bet_home} – ${bet.bet_away}` : 'DNS'}
                 </span>
-                <span className={`font-medium
+                <span className={`font-medium text-right
                   ${pts === 3 ? 'text-emerald-600' :
                     pts === 1 ? 'text-amber-600' :
                     'text-gray-400'}`}>
