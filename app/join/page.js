@@ -71,7 +71,7 @@ export default function JoinPage() {
             value={alias}
             onChange={(e) => setAlias(e.target.value)}
             placeholder="Enter your name or alias..."
-            className="w-full h-10 border border-gray-200 rounded-lg px-3 text-sm bg-gray-50 focus:outline-none focus:border-emerald-500"
+            className="w-full h-10 border border-gray-200 rounded-lg px-3 text-sm bg-gray-50 focus:outline-none focus:border-emerald-500 text-gray-900 placeholder-gray-400"
           />
         </div>
 
@@ -82,7 +82,7 @@ export default function JoinPage() {
             value={joinCode}
             onChange={(e) => setJoinCode(e.target.value)}
             placeholder="Enter join code..."
-            className="w-full h-10 border border-gray-200 rounded-lg px-3 text-sm bg-gray-50 focus:outline-none focus:border-emerald-500"
+            className="w-full h-10 border border-gray-200 rounded-lg px-3 text-sm bg-gray-50 focus:outline-none focus:border-emerald-500 text-gray-900 placeholder-gray-400"
           />
         </div>
 
