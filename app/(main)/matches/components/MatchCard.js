@@ -69,7 +69,7 @@ export default function MatchCard({ match, status, userId, bets, users, formatTi
               max="99"
               value={homeInput}
               onChange={(e) => setHomeInput(e.target.value)}
-              className="w-8 h-8 border border-gray-200 rounded-lg text-center text-sm font-medium bg-gray-50 focus:outline-none focus:border-emerald-500 text-gray-900"
+              className="w-8 h-8 border border-gray-200 rounded-lg text-center text-base font-medium bg-gray-50 focus:outline-none focus:border-emerald-500 text-gray-900"
             />
             <span className="text-xs text-gray-300">–</span>
             <input
@@ -78,7 +78,7 @@ export default function MatchCard({ match, status, userId, bets, users, formatTi
               max="99"
               value={awayInput}
               onChange={(e) => setAwayInput(e.target.value)}
-              className="w-8 h-8 border border-gray-200 rounded-lg text-center text-sm font-medium bg-gray-50 focus:outline-none focus:border-emerald-500 text-gray-900"
+              className="w-8 h-8 border border-gray-200 rounded-lg text-center text-base font-medium bg-gray-50 focus:outline-none focus:border-emerald-500 text-gray-900"
             />
           </div>
         ) : (
@@ -138,7 +138,7 @@ export default function MatchCard({ match, status, userId, bets, users, formatTi
           onClick={() => setShowAllBets(prev => !prev)}
           className="w-full h-7 mt-2 border border-gray-200 rounded-lg text-xs text-gray-400 bg-transparent"
         >
-          {showAllBets ? 'Hide bets ▴' : 'View all bets ▾'}
+          {showAllBets ? 'Hide bets ▴' : 'View all players bets ▾'}
         </button>
       )}
 

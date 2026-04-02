@@ -61,7 +61,7 @@ export default function JoinPage() {
             <span className="text-white text-2xl">⚽</span>
           </div>
           <h1 className="text-lg font-medium text-gray-900">World Cup 2026</h1>
-          <p className="text-sm text-gray-400 mt-1">The legendary betting competition</p>
+          <p className="text-sm text-gray-400 mt-1">Welcome to Erik's legendary competition!</p>
         </div>
 
         <div className="mb-4">
@@ -71,7 +71,7 @@ export default function JoinPage() {
             value={alias}
             onChange={(e) => setAlias(e.target.value)}
             placeholder="Enter your name or alias..."
-            className="w-full h-10 border border-gray-200 rounded-lg px-3 text-sm bg-gray-50 focus:outline-none focus:border-emerald-500 text-gray-900 placeholder-gray-400"
+            className="w-full h-10 border border-gray-200 rounded-lg px-3 text-base bg-gray-50 focus:outline-none focus:border-emerald-500 text-gray-900 placeholder-gray-400"
           />
         </div>
 
@@ -82,7 +82,7 @@ export default function JoinPage() {
             value={joinCode}
             onChange={(e) => setJoinCode(e.target.value)}
             placeholder="Enter join code..."
-            className="w-full h-10 border border-gray-200 rounded-lg px-3 text-sm bg-gray-50 focus:outline-none focus:border-emerald-500 text-gray-900 placeholder-gray-400"
+            className="w-full h-10 border border-gray-200 rounded-lg px-3 text-base bg-gray-50 focus:outline-none focus:border-emerald-500 text-gray-900 placeholder-gray-400"
           />
         </div>
 
