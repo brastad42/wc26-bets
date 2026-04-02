@@ -2,6 +2,28 @@
 
 import { useState } from 'react'
 import { supabase } from '@/lib/supabase'
+import Image from 'next/image'
+
+const FLAGS = {
+  'Mexico': 'mx', 'South Africa': 'za', 'South Korea': 'kr', 'Czechia': 'cz',
+  'Canada': 'ca', 'Bosnia-Herzegovina': 'ba', 'Qatar': 'qa', 'Switzerland': 'ch',
+  'Brazil': 'br', 'Morocco': 'ma', 'Haiti': 'ht', 'Scotland': 'gb-sct',
+  'USA': 'us', 'Paraguay': 'py', 'Australia': 'au', 'Turkey': 'tr',
+  'Germany': 'de', 'Curaçao': 'cw', 'Ivory Coast': 'ci', 'Ecuador': 'ec',
+  'Netherlands': 'nl', 'Japan': 'jp', 'Sweden': 'se', 'Tunisia': 'tn',
+  'Belgium': 'be', 'Egypt': 'eg', 'Iran': 'ir', 'New Zealand': 'nz',
+  'Spain': 'es', 'Cape Verde': 'cv', 'Saudi Arabia': 'sa', 'Uruguay': 'uy',
+  'France': 'fr', 'Senegal': 'sn', 'Iraq': 'iq', 'Norway': 'no',
+  'Argentina': 'ar', 'Algeria': 'dz', 'Austria': 'at', 'Jordan': 'jo',
+  'Portugal': 'pt', 'Congo': 'cg', 'Uzbekistan': 'uz', 'Colombia': 'co',
+  'England': 'gb-eng', 'Croatia': 'hr', 'Ghana': 'gh', 'Panama': 'pa',
+}
+
+function getFlag(teamName) {
+  const code = FLAGS[teamName]
+  if (!code) return null
+  return `https://flagcdn.com/w40/${code}.png`
+}
 
 function calcPoints(match, betHome, betAway) {
   if (match.result_home === null || match.result_away === null) return null
@@ -58,11 +80,15 @@ export default function MatchCard({ match, status, userId, bets, users, formatTi
 
       {/* Teams row */}
       <div className="flex items-center justify-between gap-2 mb-3">
-        <span className="text-sm font-medium text-gray-900 flex-1">{match.home_team}</span>
+        <div className="flex items-center gap-1.5 flex-1 min-w-0">
+          {getFlag(match.home_team) && (
+            <Image src={getFlag(match.home_team)} alt={match.home_team} width={24} height={16} className="flex-shrink-0 rounded-sm" style={{ width: '24px', height: 'auto' }} />
+          )}
+          <span className="text-sm font-medium text-gray-900 truncate">{match.home_team}</span>
+        </div>
 
         {status === 'open' ? (
-          // Bet inputs
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 flex-shrink-0">
             <input
               type="number"
               min="0"
@@ -82,8 +108,7 @@ export default function MatchCard({ match, status, userId, bets, users, formatTi
             />
           </div>
         ) : (
-          // Final result
-          <div className="text-center">
+          <div className="text-center flex-shrink-0">
             {match.result_home !== null && match.result_away !== null ? (
               <span className="text-lg font-medium text-gray-900">
                 {match.result_home} – {match.result_away}
@@ -94,7 +119,12 @@ export default function MatchCard({ match, status, userId, bets, users, formatTi
           </div>
         )}
 
-        <span className="text-sm font-medium text-gray-900 flex-1 text-right">{match.away_team}</span>
+        <div className="flex items-center justify-end gap-1.5 flex-1 min-w-0">
+          <span className="text-sm font-medium text-gray-900 truncate text-right">{match.away_team}</span>
+          {getFlag(match.away_team) && (
+            <Image src={getFlag(match.away_team)} alt={match.away_team} width={24} height={16} className="flex-shrink-0 rounded-sm" style={{ width: '24px', height: 'auto' }} />
+          )}
+        </div>
       </div>
 
       {/* Open stage: save bet button */}

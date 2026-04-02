@@ -124,11 +124,14 @@ useEffect(() => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col">
+    <div className="min-h-screen flex flex-col" style={{ background: '#f4f5f7' }}>
 
-      {/* Top bar */}
-      <div className="bg-white px-4 pt-12 pb-3">
-        <h1 className="text-lg font-medium text-gray-900">Chat</h1>
+      {/* Sticky header */}
+      <div className="sticky top-0 z-40" style={{ background: '#0a5c45' }}>
+        <div className="flex items-center gap-3 px-4 pt-4 pb-3">
+          <span className="text-2xl leading-none">💬</span>
+          <h1 className="text-xl font-medium text-white tracking-tight">Chat</h1>
+        </div>
       </div>
 
       {/* Messages */}

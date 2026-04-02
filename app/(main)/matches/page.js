@@ -74,20 +74,23 @@ export default function MatchesPage() {
   const status = stageStatus[activeStage] || 'open'
 
   return (
-    <div className="min-h-screen bg-gray-100 pb-20">
+    <div className="min-h-screen pb-20" style={{ background: '#f4f5f7' }}>
 
-      {/* Top bar */}
-      <div className="bg-white px-4 pt-12 pb-0">
-        <h1 className="text-lg font-medium text-gray-900 mb-3">Matches</h1>
-        <div className="flex gap-2 overflow-x-auto pb-3 scrollbar-hide">
+      {/* Sticky header */}
+      <div className="sticky top-0 z-40" style={{ background: '#0a5c45' }}>
+        <div className="flex items-center gap-3 px-4 pt-4 pb-3">
+          <span className="text-2xl leading-none">⚽</span>
+          <h1 className="text-xl font-medium text-white tracking-tight">Matches</h1>
+        </div>
+        <div className="flex gap-2 overflow-x-auto px-3 pb-3 scrollbar-hide">
           {STAGES.map(stage => (
             <button
               key={stage}
               onClick={() => setActiveStage(stage)}
               className={`px-3 py-1 rounded-full text-xs font-medium border whitespace-nowrap
                 ${activeStage === stage
-                  ? 'bg-emerald-500 text-emerald-900 border-emerald-500'
-                  : 'bg-transparent text-gray-400 border-gray-200'
+                  ? 'bg-white text-[#0a5c45] border-white'
+                  : 'bg-transparent border-white/25 text-white/65'
                 }`}
             >
               {stage}

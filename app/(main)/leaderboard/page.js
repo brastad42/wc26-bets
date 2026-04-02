@@ -100,17 +100,23 @@ export default function LeaderboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 pb-20">
+    <div className="min-h-screen pb-20" style={{ background: '#f4f5f7' }}>
 
-      {/* Top bar */}
-      <div className="bg-white px-4 pt-12 pb-3 flex justify-between items-center">
-        <h1 className="text-lg font-medium text-gray-900">Leaderboard</h1>
-        <button
-          onClick={handleRefresh}
-          className="text-xs text-emerald-600 border border-emerald-300 rounded-full px-3 py-1"
-        >
-          ↻ Refresh
-        </button>
+      {/* Sticky header */}
+      <div className="sticky top-0 z-40" style={{ background: '#0a5c45' }}>
+        <div className="flex items-center justify-between px-4 pt-4 pb-3">
+          <div className="flex items-center gap-3">
+            <span className="text-2xl leading-none">🏆</span>
+            <h1 className="text-xl font-medium text-white tracking-tight">Leaderboard</h1>
+          </div>
+          <button
+            onClick={handleRefresh}
+            className="text-xs px-3 py-1 rounded-full"
+            style={{ color: 'rgba(255,255,255,0.75)', border: '0.5px solid rgba(255,255,255,0.3)' }}
+          >
+            ↻ Refresh
+          </button>
+        </div>
       </div>
 
       {/* Table */}

@@ -1,10 +1,12 @@
 export default function RulesPage() {
   return (
-    <div className="min-h-screen bg-gray-100 pb-20">
-
-      {/* Top bar */}
-      <div className="bg-white px-4 pt-12 pb-3">
-        <h1 className="text-lg font-medium text-gray-900">Rules</h1>
+    <div className="min-h-screen pb-20" style={{ background: '#f4f5f7' }}>
+      {/* Sticky header */}
+      <div className="sticky top-0 z-40" style={{ background: '#0a5c45' }}>
+        <div className="flex items-center gap-3 px-4 pt-4 pb-3">
+          <span className="text-2xl leading-none">📋</span>
+          <h1 className="text-xl font-medium text-white tracking-tight">Rules</h1>
+        </div>
       </div>
 
       <div className="px-4 pt-4 space-y-5">
