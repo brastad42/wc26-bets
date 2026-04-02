@@ -40,7 +40,7 @@ export default function AdminPage() {
             onChange={(e) => setCode(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
             placeholder="Admin code..."
-            className="w-full h-10 border border-gray-200 rounded-lg px-3 text-sm bg-gray-50 focus:outline-none focus:border-emerald-500 mb-3 text-gray-900 placeholder-gray-400"
+            className="w-full h-10 border border-gray-200 rounded-lg px-3 text-base bg-gray-50 focus:outline-none focus:border-emerald-500 mb-3 text-gray-900 placeholder-gray-400"
           />
           {error && <p className="text-xs text-red-500 mb-3">{error}</p>}
           <button
