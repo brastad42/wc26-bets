@@ -38,11 +38,15 @@ export default function JoinPage() {
       .select()
       .single()
 
-    if (userError) {
-      setError('Oops, something went tits-up. Please try again.')
-      setLoading(false)
-      return
-    }
+      if (userError) {
+        if (userError.code === '23505') {
+          setError('Sorry, this name/alias is already taken. Please try another.')
+        } else {
+          setError('Something went wrong. Please try again.')
+        }
+        setLoading(false)
+        return
+      }
 
     // 3. Lagre bruker-ID lokalt i nettleseren
     localStorage.setItem('userId', user.id)
@@ -61,7 +65,7 @@ export default function JoinPage() {
             <span className="text-white text-2xl">⚽</span>
           </div>
           <h1 className="text-lg font-medium text-gray-900">World Cup 2026</h1>
-          <p className="text-sm text-gray-400 mt-1">Welcome to Erik's legendary competition!</p>
+          <p className="text-sm text-gray-400 mt-1">Welcome to Erik&apos;s legendary competition!</p>
         </div>
 
         <div className="mb-4">
