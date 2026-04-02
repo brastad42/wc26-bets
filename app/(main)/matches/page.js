@@ -25,7 +25,19 @@ export default function MatchesPage() {
   const [users, setUsers] = useState([])
   const [userId, setUserId] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [collapsedGroups, setCollapsedGroups] = useState({})
 
+function toggleGroup(group) {
+  setCollapsedGroups(prev => ({
+    ...prev,
+    [group]: !prev[group]
+  }))
+}
+
+function isCollapsed(group) {
+  // Default to collapsed (true) if not explicitly set
+  return collapsedGroups[group] === undefined ? false : collapsedGroups[group]
+}
 
   useEffect(() => {
     async function init() {
@@ -71,6 +83,8 @@ export default function MatchesPage() {
     return acc
   }, {})
 
+  const sortedGroups = Object.entries(groupedMatches).sort(([a], [b]) => a.localeCompare(b))
+
   const status = stageStatus[activeStage] || 'open'
 
   return (
@@ -99,6 +113,7 @@ export default function MatchesPage() {
         </div>
       </div>
 
+
       {/* Content */}
       <div className="px-3 pt-3">
         {loading ? (
@@ -106,15 +121,23 @@ export default function MatchesPage() {
         ) : filteredMatches.length === 0 ? (
           <p className="text-sm text-gray-400 text-center mt-8">No matches yet for this stage.</p>
         ) : (
-          Object.entries(groupedMatches).map(([group, groupMatches]) => (
+          sortedGroups.map(([group, groupMatches]) => (
             <div key={group}>
-              <div className="flex items-center gap-2 mt-4 mb-2">
+              <div
+                className="flex items-center gap-2 mt-4 mb-2 cursor-pointer"
+                onClick={() => activeStage === 'Group' && toggleGroup(group)}
+              >
                 <span className="text-xs font-medium text-gray-400 uppercase tracking-wide whitespace-nowrap">
                   {activeStage === 'Group' ? `Group ${group}` : ''}
                 </span>
                 <div className="flex-1 h-px bg-gray-200" />
+                {activeStage === 'Group' && (
+                  <span className="text-xs text-gray-400">
+                    {isCollapsed(group) ? '▸' : '▾'}
+                  </span>
+                )}
               </div>
-              {groupMatches.map(match => (
+              {!isCollapsed(group) && groupMatches.map(match => (
                 <MatchCard
                   key={match.id}
                   match={match}
@@ -136,7 +159,7 @@ export default function MatchesPage() {
           ))
         )}
       </div>
-
+      
     </div>
   )
 }
