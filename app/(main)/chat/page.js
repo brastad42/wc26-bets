@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 
+const EMOJIS = ['👍', '😊', '😂', '😢', '😣', '🤬', '💯', '🎉', '❤️']
+
 function formatTime(utcString) {
   const date = new Date(utcString)
   return date.toLocaleString('en-GB', {
@@ -17,11 +19,13 @@ function formatTime(utcString) {
 export default function ChatPage() {
   const [messages, setMessages] = useState([])
   const [users, setUsers] = useState([])
+  const [reactions, setReactions] = useState([])
   const [userId, setUserId] = useState(null)
   const [input, setInput] = useState('')
   const [sending, setSending] = useState(false)
   const [showScrollBtn, setShowScrollBtn] = useState(false)
   const [competitionId, setCompetitionId] = useState(null)
+  const [activeEmojiPicker, setActiveEmojiPicker] = useState(null)
   const bottomRef = useRef(null)
   const scrollRef = useRef(null)
 
@@ -43,30 +47,25 @@ export default function ChatPage() {
 
   useEffect(() => {
     async function fetchData() {
-      const [{ data: msgData }, { data: userData }] = await Promise.all([
-        supabase
-          .from('messages')
-          .select('*')
-          .order('created_at'),
-        supabase
-          .from('users')
-          .select('id, alias')
+      const [{ data: msgData }, { data: userData }, { data: reactionData }] = await Promise.all([
+        supabase.from('messages').select('*').order('created_at'),
+        supabase.from('users').select('id, alias'),
+        supabase.from('reactions').select('*')
       ])
 
       setMessages(msgData || [])
       setUsers(userData || [])
+      setReactions(reactionData || [])
       scrollToBottom()
     }
 
     fetchData()
   }, [])
 
-useEffect(() => {
+  useEffect(() => {
     const channel = supabase
-      .channel('chat')
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'messages' },
+      .channel('chat-v2')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' },
         (payload) => {
           setMessages(prev => {
             const exists = prev.find(m => m.id === payload.new.id)
@@ -76,11 +75,23 @@ useEffect(() => {
           scrollToBottom()
         }
       )
-      .on(
-        'postgres_changes',
-        { event: 'DELETE', schema: 'public', table: 'messages' },
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'messages' },
         (payload) => {
           setMessages(prev => prev.filter(m => m.id !== payload.old.id))
+        }
+      )
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'reactions' },
+        (payload) => {
+          setReactions(prev => {
+            const exists = prev.find(r => r.id === payload.new.id)
+            if (exists) return prev
+            return [...prev, payload.new]
+          })
+        }
+      )
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'reactions' },
+        (payload) => {
+          setReactions(prev => prev.filter(r => r.id !== payload.old.id))
         }
       )
       .subscribe()
@@ -101,18 +112,14 @@ useEffect(() => {
     if (!input.trim() || !userId || !competitionId) return
     setSending(true)
 
-    const { data, error } = await supabase
-      .from('messages')
-      .insert({
-        competition_id: competitionId,
-        user_id: userId,
-        content: input.trim()
-      })
+    await supabase.from('messages').insert({
+      competition_id: competitionId,
+      user_id: userId,
+      content: input.trim()
+    })
 
-    if (!error) {
-      setInput('')
-      scrollToBottom()
-    }
+    setInput('')
+    scrollToBottom()
     setSending(false)
   }
 
@@ -123,15 +130,39 @@ useEffect(() => {
     }
   }
 
-  return (
-    <div className="min-h-screen flex flex-col" style={{ background: '#f4f5f7' }}>
+  async function handleReaction(messageId, emoji) {
+    const existing = reactions.find(
+      r => r.message_id === messageId && r.user_id === userId && r.emoji === emoji
+    )
 
-      {/* Sticky header */}
-      <div className="sticky top-0 z-40" style={{ background: '#0a5c45' }}>
-        <div className="flex items-center gap-3 px-4 pt-4 pb-3">
-          <span className="text-2xl leading-none">💬</span>
-          <h1 className="text-xl font-medium text-white tracking-tight">Chat</h1>
-        </div>
+    if (existing) {
+      await supabase.from('reactions').delete().eq('id', existing.id)
+    } else {
+      await supabase.from('reactions').insert({
+        message_id: messageId,
+        user_id: userId,
+        emoji
+      })
+    }
+    setActiveEmojiPicker(null)
+  }
+
+  function getReactionsForMessage(messageId) {
+    const msgReactions = reactions.filter(r => r.message_id === messageId)
+    const grouped = {}
+    for (const r of msgReactions) {
+      if (!grouped[r.emoji]) grouped[r.emoji] = []
+      grouped[r.emoji].push(r.user_id)
+    }
+    return grouped
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-100 flex flex-col">
+
+      {/* Top bar */}
+      <div className="bg-white px-4 pt-12 pb-3">
+        <h1 className="text-lg font-medium text-gray-900">Chat</h1>
       </div>
 
       {/* Messages */}
@@ -139,21 +170,80 @@ useEffect(() => {
         ref={scrollRef}
         onScroll={handleScroll}
         className="flex-1 overflow-y-auto px-3 py-3 pb-32"
+        onClick={() => setActiveEmojiPicker(null)}
       >
         {messages.map(msg => {
           const isMe = msg.user_id === userId
           const user = users.find(u => u.id === msg.user_id)
+          const msgReactions = getReactionsForMessage(msg.id)
+          const hasReactions = Object.keys(msgReactions).length > 0
+
           return (
             <div key={msg.id} className={`mb-3 ${isMe ? 'text-right' : ''}`}>
               <p className="text-xs text-gray-400 mb-1">
                 {user?.alias || '—'} · {formatTime(msg.created_at)}
               </p>
-              <div className={`inline-block max-w-xs px-3 py-2 rounded-xl text-sm
-                ${isMe
-                  ? 'bg-emerald-100 text-emerald-900 rounded-tr-none'
-                  : 'bg-white text-gray-900 rounded-tl-none'
-                }`}>
-                {msg.content}
+
+              <div className={`relative inline-block ${isMe ? 'text-right' : ''}`}>
+                {/* Message bubble */}
+                <div
+                  className={`inline-block max-w-xs px-3 py-2 rounded-xl text-sm cursor-pointer
+                    ${isMe
+                      ? 'bg-emerald-100 text-emerald-900 rounded-tr-none'
+                      : 'bg-white text-gray-900 rounded-tl-none'
+                    }`}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setActiveEmojiPicker(prev => prev === msg.id ? null : msg.id)
+                  }}
+                >
+                  {msg.content}
+                </div>
+
+                {/* Emoji picker */}
+                {activeEmojiPicker === msg.id && (
+                  <div
+                    className={`absolute z-10 bg-white rounded-2xl shadow-lg border border-gray-100 p-2 flex gap-1 flex-wrap w-48 ${isMe ? 'right-0' : 'left-0'}`}
+                    style={{ bottom: '100%', marginBottom: '4px' }}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    {EMOJIS.map(emoji => (
+                      <button
+                        key={emoji}
+                        onClick={() => handleReaction(msg.id, emoji)}
+                        className={`text-lg p-1 rounded-lg hover:bg-gray-100 
+                          ${reactions.find(r => r.message_id === msg.id && r.user_id === userId && r.emoji === emoji)
+                            ? 'bg-emerald-50'
+                            : ''
+                          }`}
+                      >
+                        {emoji}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {/* Reaction bubbles */}
+                {hasReactions && (
+                  <div className={`flex flex-wrap gap-1 mt-1 ${isMe ? 'justify-end' : 'justify-start'}`}>
+                    {Object.entries(msgReactions).map(([emoji, userIds]) => (
+                      <button
+                        key={emoji}
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleReaction(msg.id, emoji)
+                        }}
+                        className={`text-xs px-2 py-0.5 rounded-full border flex items-center gap-1
+                          ${userIds.includes(userId)
+                            ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
+                            : 'bg-white border-gray-200 text-gray-600'
+                          }`}
+                      >
+                        {emoji} {userIds.length > 1 && <span>{userIds.length}</span>}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           )
@@ -179,7 +269,7 @@ useEffect(() => {
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="Type a message..."
-          className="flex-1 h-9 border border-gray-200 rounded-full px-4 text-base bg-gray-50 focus:outline-none focus:border-emerald-500 text-gray-900 placeholder-gray-400"
+          className="flex-1 h-9 border border-gray-200 rounded-full px-4 text-base bg-gray-50 focus:outline-none focus:border-emerald-500"
         />
         <button
           onClick={handleSend}

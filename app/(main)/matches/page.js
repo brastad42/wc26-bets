@@ -124,16 +124,14 @@ function isCollapsed(group) {
           sortedGroups.map(([group, groupMatches]) => (
             <div key={group}>
               <div
-                className="flex items-center gap-2 mt-4 mb-2 cursor-pointer"
+                className="mt-4 mb-2"
                 onClick={() => activeStage === 'Group' && toggleGroup(group)}
               >
-                <span className="text-xs font-medium text-gray-400 uppercase tracking-wide whitespace-nowrap">
-                  {activeStage === 'Group' ? `Group ${group}` : ''}
-                </span>
-                <div className="flex-1 h-px bg-gray-200" />
                 {activeStage === 'Group' && (
-                  <span className="text-xs text-gray-400">
-                    {isCollapsed(group) ? '▸' : '▾'}
+                  <span className="cursor-pointer text-xs bg-gray-200 text-gray-500 px-3 py-1 rounded-full font-medium">
+                    {isCollapsed(group)
+                      ? `Group ${group} ▸`
+                      : `Group ${group} ▾`}
                   </span>
                 )}
               </div>
