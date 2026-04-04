@@ -48,7 +48,7 @@ export default function ChatPage() {
   useEffect(() => {
     async function fetchData() {
       const [{ data: msgData }, { data: userData }, { data: reactionData }] = await Promise.all([
-        supabase.from('messages').select('*').order('created_at'),
+        supabase.from('messages').select('*').eq('is_deleted', false).order('created_at'),
         supabase.from('users').select('id, alias'),
         supabase.from('reactions').select('*')
       ])
@@ -77,9 +77,10 @@ export default function ChatPage() {
       )
       .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'messages' },
         (payload) => {
+          console.log('DELETE event received:', payload)
           setMessages(prev => prev.filter(m => m.id !== payload.old.id))
         }
-      )
+      )      
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'reactions' },
         (payload) => {
           setReactions(prev => {
@@ -94,11 +95,32 @@ export default function ChatPage() {
           setReactions(prev => prev.filter(r => r.id !== payload.old.id))
         }
       )
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'messages' },
+        (payload) => {
+          console.log('UPDATE event received:', payload)
+          if (payload.new.is_deleted) {
+            setMessages(prev => prev.filter(m => m.id !== payload.new.id))
+          }
+        }
+      )
       .subscribe()
 
     return () => {
       supabase.removeChannel(channel)
     }
+  }, [])
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      const { data } = await supabase
+        .from('messages')
+        .select('*')
+        .eq('is_deleted', false)
+        .order('created_at')
+      
+      if (data) setMessages(data)
+    }, 10000)
+
+    return () => clearInterval(interval)
   }, [])
 
   function handleScroll() {
@@ -160,9 +182,12 @@ export default function ChatPage() {
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col">
 
-      {/* Top bar */}
-      <div className="bg-white px-4 pt-12 pb-3">
-        <h1 className="text-lg font-medium text-gray-900">Chat</h1>
+      {/* Sticky header */}
+      <div className="sticky top-0 z-40" style={{ background: '#0a5c45' }}>
+        <div className="flex items-center gap-3 px-4 pt-4 pb-3">
+          <span className="text-2xl leading-none">💬</span>
+          <h1 className="text-xl font-medium text-white tracking-tight">Chat</h1>
+        </div>
       </div>
 
       {/* Messages */}

@@ -25,6 +25,7 @@ export default function ChatManager() {
         supabase
           .from('messages')
           .select('*')
+          .eq('is_deleted', false)
           .order('created_at', { ascending: false }),
         supabase
           .from('users')
@@ -39,15 +40,21 @@ export default function ChatManager() {
     loadData()
   }, [])
 
-  async function handleDelete(messageId) {
-    await supabase
-      .from('messages')
-      .delete()
-      .eq('id', messageId)
+async function handleDelete(messageId) {
+  const { data, error } = await supabase
+    .schema('public')
+    .from('messages')
+    .update({ is_deleted: true })
+    .eq('id', messageId)
+    .select()
 
+  console.log('Delete result:', data, error)
+
+  if (!error) {
     setMessages(prev => prev.filter(m => m.id !== messageId))
   }
-
+}
+ 
   if (loading) return <p className="text-xs text-gray-400">Loading messages...</p>
 
   return (
