@@ -211,16 +211,31 @@ export default function ChatPage() {
 
               <div className={`relative inline-block ${isMe ? 'text-right' : ''}`}>
                 {/* Message bubble */}
-                <div
-                  className={`inline-block max-w-xs px-3 py-2 rounded-xl text-sm cursor-pointer
+
+              <div
+                  className={`inline-block max-w-xs px-3 py-2 rounded-xl text-sm cursor-pointer select-none
                     ${isMe
                       ? 'bg-emerald-100 text-emerald-900 rounded-tr-none'
                       : 'bg-white text-gray-900 rounded-tl-none'
                     }`}
-                  onClick={(e) => {
+                  onMouseDown={(e) => {
                     e.stopPropagation()
-                    setActiveEmojiPicker(prev => prev === msg.id ? null : msg.id)
+                    const timer = setTimeout(() => {
+                      setActiveEmojiPicker(prev => prev === msg.id ? null : msg.id)
+                    }, 500)
+                    e.currentTarget._pressTimer = timer
                   }}
+                  onMouseUp={(e) => clearTimeout(e.currentTarget._pressTimer)}
+                  onMouseLeave={(e) => clearTimeout(e.currentTarget._pressTimer)}
+                  onTouchStart={(e) => {
+                    e.stopPropagation()
+                    const timer = setTimeout(() => {
+                      setActiveEmojiPicker(prev => prev === msg.id ? null : msg.id)
+                    }, 500)
+                    e.currentTarget._pressTimer = timer
+                  }}
+                  onTouchEnd={(e) => clearTimeout(e.currentTarget._pressTimer)}
+                  onTouchMove={(e) => clearTimeout(e.currentTarget._pressTimer)}
                 >
                   {msg.content}
                 </div>
