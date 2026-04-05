@@ -59,10 +59,7 @@ async function handleDelete(messageId) {
 
   return (
     <div className="bg-white rounded-2xl p-4 shadow-sm mb-4">
-      <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-3">
-        Chat messages
-      </p>
-
+      
       {messages.length === 0 ? (
         <p className="text-xs text-gray-400 text-center py-4">No messages yet.</p>
       ) : (

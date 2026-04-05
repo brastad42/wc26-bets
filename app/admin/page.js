@@ -7,6 +7,7 @@ import ResultManager from './components/ResultManager'
 import UserManager from './components/UserManager'
 import ChatManager from './components/ChatManager'
 import BetExport from './components/BetExport'
+import AdminSection from './components/AdminSection'
 
 const ADMIN_CODE = 'admin2026'
 
@@ -55,15 +56,32 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 p-4">
-      <div className="max-w-sm mx-auto">
-        <h1 className="text-lg font-medium text-gray-900 mb-4">Admin</h1>
-        <StageManager />
-        <ResultManager />
-        <CsvImport />
-        <BetExport />
-        <UserManager />
-        <ChatManager />
+    <div className="min-h-screen bg-gray-100">
+      <div className="sticky top-0 z-40" style={{ background: '#0a5c45' }}>
+        <div className="flex items-center gap-3 px-4 pt-4 pb-4">
+          <span className="text-2xl leading-none">⚙️</span>
+          <h1 className="text-xl font-medium text-white tracking-tight">Admin</h1>
+        </div>
+      </div>
+      <div className="max-w-sm mx-auto p-4">
+        <AdminSection title="Stages — open / lock bets" defaultOpen={true}>
+          <StageManager />
+        </AdminSection>
+        <AdminSection title="Set match results">
+          <ResultManager />
+        </AdminSection>
+        <AdminSection title="Import matches (CSV)">
+          <CsvImport />
+        </AdminSection>
+        <AdminSection title="Export bets">
+          <BetExport />
+        </AdminSection>
+        <AdminSection title="Users">
+          <UserManager />
+        </AdminSection>
+        <AdminSection title="Chat messages">
+          <ChatManager />
+        </AdminSection>
       </div>
     </div>
   )

@@ -74,10 +74,7 @@ export default function StageManager() {
 
   return (
     <div className="bg-white rounded-2xl p-4 shadow-sm mb-4">
-      <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-3">
-        Stages — open / lock bets
-      </p>
-
+      
       {STAGES.map(stageName => {
         const status = getStatus(stageName)
         return (

@@ -70,10 +70,7 @@ export default function CsvImport() {
 
   return (
     <div className="bg-white rounded-2xl p-4 shadow-sm mb-4">
-      <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-3">
-        Import matches (CSV)
-      </p>
-
+      
       <input
         ref={fileInputRef}
         type="file"

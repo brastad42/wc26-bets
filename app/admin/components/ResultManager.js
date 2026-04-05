@@ -70,10 +70,7 @@ export default function ResultManager() {
 
   return (
     <div className="bg-white rounded-2xl p-4 shadow-sm mb-4">
-      <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-3">
-        Set match results
-      </p>
-
+      
       {/* Stage tabs */}
       <div className="flex gap-2 overflow-x-auto pb-3">
         {STAGES.map(stage => (

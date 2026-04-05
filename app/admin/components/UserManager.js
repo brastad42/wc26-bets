@@ -64,10 +64,7 @@ export default function UserManager() {
 
   return (
     <div className="bg-white rounded-2xl p-4 shadow-sm mb-4">
-      <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-3">
-        Users
-      </p>
-
+      
       {users.map(user => (
         <div key={user.id} className={`bg-gray-50 rounded-lg px-3 py-2 mb-2 ${!user.is_active ? 'opacity-50' : ''}`}>
 
