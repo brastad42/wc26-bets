@@ -12,7 +12,8 @@ const tabs = [
 export default function TabBar() {
   const pathname = usePathname()
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 flex justify-around items-center h-16 px-2 z-50">
+    <div className="fixed bottom-0 left-0 right-0 flex justify-around items-center h-16 px-2 z-50"
+      style={{ background: '#0a5c45' }}>
       {tabs.map(tab => {
         const active = pathname === tab.href
         return (
@@ -23,14 +24,15 @@ export default function TabBar() {
           >
             <span
               className="text-[22px] leading-none"
-              style={{ filter: active ? 'none' : 'grayscale(1) opacity(0.35)' }}
+              style={{ filter: active ? 'none' : 'grayscale(1) opacity(0.4) brightness(2)' }}
             >
               {tab.emoji}
             </span>
-            <span className={`text-[10px] ${active ? 'text-[#0a5c45]' : 'text-gray-400'}`}>
+            <span className="text-[10px]"
+              style={{ color: active ? '#fff' : 'rgba(255,255,255,0.45)' }}>
               {tab.label}
             </span>
-            {active && <div className="w-1 h-1 rounded-full bg-[#1D9E75]" />}
+            {active && <div className="w-1 h-1 rounded-full bg-white" />}
           </Link>
         )
       })}
