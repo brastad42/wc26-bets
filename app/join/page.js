@@ -57,7 +57,8 @@ export default function JoinPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
+    <div className="min-h-screen flex items-center justify-center p-4"
+    style={{ background: '#0a5c45' }}>
       <div className="bg-white rounded-3xl p-8 w-full max-w-sm shadow-sm">
 
         <div className="text-center mb-8">
@@ -65,7 +66,7 @@ export default function JoinPage() {
             <span className="text-white text-2xl">⚽</span>
           </div>
           <h1 className="text-lg font-medium text-gray-900">World Cup 2026</h1>
-          <p className="text-sm text-gray-400 mt-1">Welcome to Erik&apos;s legendary competition!</p>
+          <p className="text-sm text-gray-500 mt-1">Welcome to Erik&apos;s legendary competition!</p>
         </div>
 
         <div className="mb-4">

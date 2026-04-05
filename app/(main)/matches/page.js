@@ -25,18 +25,26 @@ export default function MatchesPage() {
   const [users, setUsers] = useState([])
   const [userId, setUserId] = useState(null)
   const [loading, setLoading] = useState(true)
-  const [collapsedGroups, setCollapsedGroups] = useState({})
+  const [collapsedGroups, setCollapsedGroups] = useState(() => {
+    try {
+      const saved = sessionStorage.getItem('collapsedGroups')
+      return saved ? JSON.parse(saved) : {}
+    } catch {
+      return {}
+    }
+  })
 
 function toggleGroup(group) {
-  setCollapsedGroups(prev => ({
-    ...prev,
-    [group]: !prev[group]
-  }))
+  setCollapsedGroups(prev => {
+    const updated = { ...prev, [group]: !isCollapsed(group) }
+    sessionStorage.setItem('collapsedGroups', JSON.stringify(updated))
+    return updated
+  })
 }
 
 function isCollapsed(group) {
   // Default to collapsed (true) if not explicitly set
-  return collapsedGroups[group] === undefined ? false : collapsedGroups[group]
+  return collapsedGroups[group] === undefined ? true : collapsedGroups[group]
 }
 
   useEffect(() => {
