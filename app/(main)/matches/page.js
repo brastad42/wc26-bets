@@ -6,6 +6,21 @@ import MatchCard from './components/MatchCard'
 
 const STAGES = ['Group', 'R32', 'R16', 'QF', 'SF', 'Final']
 
+const FLAGS = {
+  'Mexico': 'mx', 'South Africa': 'za', 'South Korea': 'kr', 'Czechia': 'cz',
+  'Canada': 'ca', 'Bosnia-Herzegovina': 'ba', 'Qatar': 'qa', 'Switzerland': 'ch',
+  'Brazil': 'br', 'Morocco': 'ma', 'Haiti': 'ht', 'Scotland': 'gb-sct',
+  'USA': 'us', 'Paraguay': 'py', 'Australia': 'au', 'Turkey': 'tr',
+  'Germany': 'de', 'Curaçao': 'cw', 'Ivory Coast': 'ci', 'Ecuador': 'ec',
+  'Netherlands': 'nl', 'Japan': 'jp', 'Sweden': 'se', 'Tunisia': 'tn',
+  'Belgium': 'be', 'Egypt': 'eg', 'Iran': 'ir', 'New Zealand': 'nz',
+  'Spain': 'es', 'Cape Verde': 'cv', 'Saudi Arabia': 'sa', 'Uruguay': 'uy',
+  'France': 'fr', 'Senegal': 'sn', 'Iraq': 'iq', 'Norway': 'no',
+  'Argentina': 'ar', 'Algeria': 'dz', 'Austria': 'at', 'Jordan': 'jo',
+  'Portugal': 'pt', 'Congo': 'cg', 'Uzbekistan': 'uz', 'Colombia': 'co',
+  'England': 'gb-eng', 'Croatia': 'hr', 'Ghana': 'gh', 'Panama': 'pa',
+}
+
 function formatTime(utcString) {
   const date = new Date(utcString)
   return date.toLocaleString('en-GB', {
@@ -34,18 +49,27 @@ export default function MatchesPage() {
     }
   })
 
-function toggleGroup(group) {
-  setCollapsedGroups(prev => {
-    const updated = { ...prev, [group]: !isCollapsed(group) }
-    sessionStorage.setItem('collapsedGroups', JSON.stringify(updated))
-    return updated
-  })
-}
+  function toggleGroup(group) {
+    setCollapsedGroups(prev => {
+      const updated = { ...prev, [group]: !isCollapsed(group) }
+      sessionStorage.setItem('collapsedGroups', JSON.stringify(updated))
+      return updated
+    })
+  }
 
-function isCollapsed(group) {
-  // Default to collapsed (true) if not explicitly set
-  return collapsedGroups[group] === undefined ? true : collapsedGroups[group]
-}
+  function isCollapsed(group) {
+    return collapsedGroups[group] === undefined ? true : collapsedGroups[group]
+  }
+
+  function getGroupTeams(group) {
+    const groupMatches = matches.filter(m => m.stage === 'Group' && m.match_group === group)
+    const teams = new Set()
+    for (const m of groupMatches) {
+      teams.add(m.home_team)
+      teams.add(m.away_team)
+    }
+    return [...teams].slice(0, 4)
+  }
 
   useEffect(() => {
     async function init() {
@@ -121,7 +145,6 @@ function isCollapsed(group) {
         </div>
       </div>
 
-
       {/* Content */}
       <div className="px-3 pt-3">
         {loading ? (
@@ -136,10 +159,25 @@ function isCollapsed(group) {
                 onClick={() => activeStage === 'Group' && toggleGroup(group)}
               >
                 {activeStage === 'Group' && (
-                  <span className="cursor-pointer text-xs bg-gray-200 text-gray-500 px-3 py-1 rounded-full font-medium">
-                    {isCollapsed(group)
-                      ? `Group ${group} ▸`
-                      : `Group ${group} ▾`}
+                  <span className="cursor-pointer text-xs bg-gray-200 text-gray-500 px-3 py-1 rounded-full font-medium inline-flex items-center gap-2">
+                    {isCollapsed(group) ? `Group ${group} ▸` : `Group ${group} ▾`}
+                    {isCollapsed(group) && (
+                      <span className="flex items-center gap-0.5">
+                        {getGroupTeams(group).map(team => {
+                          const code = FLAGS[team]
+                          if (!code) return null
+                          return (
+                            <img
+                              key={team}
+                              src={`https://flagcdn.com/w40/${code}.png`}
+                              alt={team}
+                              className="w-4 rounded-sm"
+                              style={{ height: 'auto' }}
+                            />
+                          )
+                        })}
+                      </span>
+                    )}
                   </span>
                 )}
               </div>
@@ -165,7 +203,7 @@ function isCollapsed(group) {
           ))
         )}
       </div>
-      
+
     </div>
   )
 }
