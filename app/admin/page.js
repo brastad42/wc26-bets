@@ -64,7 +64,7 @@ export default function AdminPage() {
         </div>
       </div>
       <div className="max-w-sm mx-auto p-4">
-        <AdminSection title="Stages — open / lock bets" defaultOpen={true}>
+        <AdminSection title="Stages — open / lock bets" defaultOpen={false}>
           <StageManager />
         </AdminSection>
         <AdminSection title="Set match results">

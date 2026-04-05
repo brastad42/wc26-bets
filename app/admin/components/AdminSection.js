@@ -14,7 +14,7 @@ export default function AdminSection({ title, defaultOpen = false, children }) {
         <p className="text-xs font-medium text-gray-400 uppercase tracking-wide">
           {title}
         </p>
-        <span className="text-gray-400 text-xs">{isOpen ? '▾' : '▸'}</span>
+        <span className="text-gray-500 text-base">{isOpen ? '▾' : '▸'}</span>
       </button>
       {isOpen && (
         <div className="px-4 pb-4">
