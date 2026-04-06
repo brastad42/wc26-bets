@@ -133,12 +133,12 @@ export default function MatchCard({ match, status, userId, bets, users, formatTi
           <button
             onClick={handleSaveBet}
             disabled={homeInput === '' || awayInput === '' || saving}
-            className={`w-full h-8 rounded-lg text-xs font-medium disabled:opacity-40
-              ${myBet ? 'bg-emerald-500 text-white' : 'bg-emerald-500 text-white'}`}
+            className={`w-full h-8 rounded-lg text-xs font-medium border disabled:opacity-50
+              ${myBet ? 'bg-emerald-50 border-emerald-300 text-emerald-700' : 'bg-emerald-50 border-emerald-300 text-emerald-700'}`}
           >
             {saving ? 'Saving...' : myBet ? 'Update bet' : 'Place bet'}
           </button>
-          <p className="text-xs text-gray-300 text-center mt-1">Bets are hidden until stage kicks off</p>
+          <p className="text-xs text-gray-400 text-center mt-1">Bets are hidden until stage kicks off</p>
         </>
       )}
 

@@ -60,6 +60,7 @@ export default function MatchesPage() {
   }
 
   function isCollapsed(group) {
+    if (activeStage !== 'Group') return false
     return collapsedGroups[group] === undefined ? true : collapsedGroups[group]
   }
 
@@ -156,11 +157,11 @@ export default function MatchesPage() {
         ) : (
           sortedGroups.map(([group, groupMatches]) => (
             <div key={group}>
-              <div
-                className="mt-4 mb-2"
-                onClick={() => activeStage === 'Group' && toggleGroup(group)}
-              >
-                {activeStage === 'Group' && (
+              {activeStage === 'Group' && (
+                <div
+                  className="mt-4 mb-2"
+                  onClick={() => toggleGroup(group)}
+                >
                   <span className="cursor-pointer text-xs bg-gray-200 text-gray-500 px-3 py-1 rounded-full font-medium inline-flex items-center gap-2">
                     {isCollapsed(group) ? `Group ${group} ▸` : `Group ${group} ▾`}
                     {isCollapsed(group) && (
@@ -181,8 +182,8 @@ export default function MatchesPage() {
                       </span>
                     )}
                   </span>
-                )}
-              </div>
+                </div>
+              )}
               {!isCollapsed(group) && groupMatches.map(match => (
                 <MatchCard
                   key={match.id}
