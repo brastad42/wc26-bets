@@ -63,7 +63,7 @@ export default function AdminPage() {
           <h1 className="text-xl font-medium text-white tracking-tight">Admin</h1>
         </div>
       </div>
-      <div className="max-w-sm mx-auto p-4 pt-8">
+      <div className="max-w-sm mx-auto p-4 pt-16">
         <AdminSection title="Stages — open / lock bets" defaultOpen={false}>
           <StageManager />
         </AdminSection>
