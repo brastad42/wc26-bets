@@ -65,7 +65,7 @@ export default function MatchCard({ match, status, userId, bets, users, formatTi
   const myPoints = myBet ? calcPoints(match, myBet.bet_home, myBet.bet_away) : null
 
   return (
-    <div className="bg-white border border-gray-100 rounded-xl p-3 mb-2">
+    <div className="bg-white rounded-xl p-3 mb-2" style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.08)' }}>
 
       {/* Meta row */}
       <div className="flex justify-between items-center mb-2">
@@ -133,8 +133,8 @@ export default function MatchCard({ match, status, userId, bets, users, formatTi
           <button
             onClick={handleSaveBet}
             disabled={homeInput === '' || awayInput === '' || saving}
-            className={`w-full h-8 rounded-lg text-xs font-medium border disabled:opacity-40
-              ${myBet ? 'bg-emerald-50 border-emerald-300 text-emerald-700' : 'bg-transparent border-emerald-400 text-emerald-700'}`}
+            className={`w-full h-8 rounded-lg text-xs font-medium disabled:opacity-40
+              ${myBet ? 'bg-emerald-500 text-white' : 'bg-emerald-500 text-white'}`}
           >
             {saving ? 'Saving...' : myBet ? 'Update bet' : 'Place bet'}
           </button>

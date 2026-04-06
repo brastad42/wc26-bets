@@ -23,13 +23,15 @@ const FLAGS = {
 
 function formatTime(utcString) {
   const date = new Date(utcString)
-  return date.toLocaleString('en-GB', {
+  const weekday = date.toLocaleString('en-GB', { timeZone: 'Europe/Oslo', weekday: 'short' })
+  const rest = date.toLocaleString('en-GB', {
     timeZone: 'Europe/Oslo',
     day: 'numeric',
-    month: 'short',
+    month: 'long',
     hour: '2-digit',
     minute: '2-digit'
   })
+  return `${weekday} ${rest}`
 }
 
 export default function MatchesPage() {
