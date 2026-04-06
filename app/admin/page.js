@@ -58,7 +58,7 @@ export default function AdminPage() {
   return (
     <div className="min-h-screen bg-gray-100">
       <div className="sticky top-0 z-40" style={{ background: '#0a5c45' }}>
-        <div className="flex items-center gap-3 px-4 pt-4 pb-4">
+        <div className="flex items-center gap-3 px-4 pt-safe pb-4" style={{ paddingTop: 'max(1rem, env(safe-area-inset-top))' }}>
           <span className="text-2xl leading-none">⚙️</span>
           <h1 className="text-xl font-medium text-white tracking-tight">Admin</h1>
         </div>
