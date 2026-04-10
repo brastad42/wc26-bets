@@ -137,6 +137,8 @@ export default function LeaderboardPage() {
             {/* Rows */}
             {leaderboard.map((user, index) => {
               const isMe = user.id === userId
+              const rank = index + 1
+              const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : null
               return (
                 <div
                   key={user.id}
@@ -144,7 +146,7 @@ export default function LeaderboardPage() {
                     ${isMe ? 'bg-emerald-50' : ''}`}
                 >
                   <span className={`text-sm font-medium ${isMe ? 'text-emerald-700' : 'text-gray-400'}`}>
-                    {index + 1}
+                    {medal ?? rank}
                   </span>
                   <span className={`text-sm ${isMe ? 'text-emerald-700 font-medium' : 'text-gray-900'}`}>
                     {user.alias}{isMe ? ' (you)' : ''}
