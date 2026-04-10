@@ -149,7 +149,7 @@ export default function MatchesPage() {
       </div>
 
       {/* Content */}
-      <div className="px-3 pt-3">
+      <div className="px-3 pt-5">
         {loading ? (
           <p className="text-sm text-gray-400 text-center mt-8">Loading...</p>
         ) : filteredMatches.length === 0 ? (
