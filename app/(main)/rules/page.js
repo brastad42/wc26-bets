@@ -43,19 +43,19 @@ export default function RulesPage() {
           <div className="space-y-2 mb-3">
             <div className="flex items-center gap-3">
               <span className="bg-emerald-100 text-emerald-800 text-xs font-medium px-2 py-1 rounded-full min-w-[48px] text-center">3 pts</span>
-              <span className="text-sm text-gray-700">Exact score correct</span>
+              <span className="text-sm text-gray-700">Exact hit (correct score prediction)</span>
             </div>
             <div className="flex items-center gap-3">
               <span className="bg-amber-100 text-amber-800 text-xs font-medium px-2 py-1 rounded-full min-w-[48px] text-center">1 pt</span>
               <span className="text-sm text-gray-700">Correct winner or correct draw</span>
             </div>
             <div className="flex items-center gap-3">
-              <span className="bg-gray-100 text-gray-500 text-xs font-medium px-2 py-1 rounded-full min-w-[48px] text-center">0 pts</span>
+              <span className="bg-gray-200 text-gray-500 text-xs font-medium px-2 py-1 rounded-full min-w-[48px] text-center">0 pts</span>
               <span className="text-sm text-gray-700">Wrong result or DNS</span>
             </div>
           </div>
           <p className="text-sm text-gray-700 leading-relaxed">
-            Points are based on the result after 90 minutes + stoppage time only. Extra time and penalties do not count. A draw after 90 min counts as a draw regardless of what happens after.
+            Points are based on the result after 90 minutes + stoppage time only. Extra time and penalties in knock-out stages do not count. For example: A draw after 90 min (+ stoppage time) counts as a draw, regardless of what happens after.
           </p>
         </section>
 

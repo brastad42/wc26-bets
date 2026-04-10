@@ -160,8 +160,8 @@ export default function LeaderboardPage() {
             })}
 
             {/* Tiebreaker note */}
-            <p className="text-xs text-gray-300 text-center py-3">
-              Tie-breaker: exact hits by stage (Group → Final)
+            <p className="text-xs text-gray-400 text-center py-3">
+              Tie-breaker: Exact hits by stage (Group → Final)
             </p>
 
           </div>
