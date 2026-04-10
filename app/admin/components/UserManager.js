@@ -14,7 +14,7 @@ export default function UserManager() {
       const { data } = await supabase
         .from('users')
         .select('*')
-        .order('created_at')
+        .order('alias')
 
       setUsers(data || [])
       setLoading(false)
