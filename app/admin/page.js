@@ -8,6 +8,7 @@ import UserManager from './components/UserManager'
 import ChatManager from './components/ChatManager'
 import BetExport from './components/BetExport'
 import AdminSection from './components/AdminSection'
+import RulesManager from './components/RulesManager'
 
 const ADMIN_CODE = 'admin2026'
 
@@ -81,6 +82,9 @@ export default function AdminPage() {
         </AdminSection>
         <AdminSection title="Chat messages">
           <ChatManager />
+        </AdminSection>
+        <AdminSection title="Rules">
+          <RulesManager />
         </AdminSection>
       </div>
     </div>
