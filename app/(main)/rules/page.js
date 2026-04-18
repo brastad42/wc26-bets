@@ -1,5 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
 
+export const revalidate = 0
+
 const DEFAULT_SECTIONS = [
   {
     title: 'Joining',
