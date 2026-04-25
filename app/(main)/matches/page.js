@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import MatchCard from './components/MatchCard'
+import LogoutButton from '@/app/components/LogoutButton'
 
 const STAGES = ['Group', 'R32', 'R16', 'QF', 'SF', 'Final']
 
@@ -127,9 +128,12 @@ export default function MatchesPage() {
 
       {/* Sticky header */}
       <div className="sticky top-0 z-40" style={{ background: '#0a5c45' }}>
-        <div className="flex items-center gap-3 px-4 pt-4 pb-3">
-          <span className="text-2xl leading-none">⚽</span>
-          <h1 className="text-xl font-medium text-white tracking-tight">Matches</h1>
+        <div className="flex items-center justify-between px-4 pt-4 pb-3">
+          <div className="flex items-center gap-3">
+            <span className="text-2xl leading-none">⚽</span>
+            <h1 className="text-xl font-medium text-white tracking-tight">Matches</h1>
+          </div>
+          <LogoutButton />
         </div>
         <div className="flex gap-2 overflow-x-auto px-3 pb-3 scrollbar-hide">
           {STAGES.map(stage => (

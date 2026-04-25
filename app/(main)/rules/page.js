@@ -1,11 +1,12 @@
 import { createClient } from '@supabase/supabase-js'
+import LogoutButton from '@/app/components/LogoutButton'
 
 export const revalidate = 0
 
 const DEFAULT_SECTIONS = [
   {
     title: 'Joining',
-    body: 'Enter your alias and the join code shared by the organizer. You are remembered automatically next time you open the app.'
+    body: 'New user: Create an account by entering your chosen name or alias, your email address, and the join code shared by the organizer. Your alias will be visible to all other players.\nExisting user: Log in from any device or browser by entering your email address and the join code. You will be recognized automatically and can continue where you left off.'
   },
   {
     title: 'Placing bets',
@@ -49,9 +50,12 @@ export default async function RulesPage() {
   return (
     <div className="min-h-screen pb-20" style={{ background: '#f4f5f7' }}>
       <div className="sticky top-0 z-40" style={{ background: '#0a5c45' }}>
-        <div className="flex items-center gap-3 px-4 pt-4 pb-3">
-          <span className="text-2xl leading-none">📋</span>
-          <h1 className="text-xl font-medium text-white tracking-tight">Rules</h1>
+        <div className="flex items-center justify-between px-4 pt-4 pb-3">
+          <div className="flex items-center gap-3">
+            <span className="text-2xl leading-none">📋</span>
+            <h1 className="text-xl font-medium text-white tracking-tight">Rules</h1>
+          </div>
+          <LogoutButton />
         </div>
       </div>
 
@@ -79,7 +83,9 @@ export default async function RulesPage() {
                   </div>
                 </div>
               )}
-              <p className="text-sm text-gray-700 leading-relaxed">{section.body}</p>
+              {section.body.split('\n').map((line, j) => (
+                <p key={j} className="text-sm text-gray-700 leading-relaxed mb-1 last:mb-0">{line}</p>
+              ))}
             </section>
           </div>
         ))}

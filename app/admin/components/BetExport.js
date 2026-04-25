@@ -63,6 +63,7 @@ export default function BetExport() {
           match.home_team,
           match.away_team,
           user.alias,
+          user.email || '',
           bet ? bet.bet_home : 'DNS',
           bet ? bet.bet_away : 'DNS',
           bet ? toOsloTime(bet.created_at) : '',
@@ -75,7 +76,7 @@ export default function BetExport() {
     // Build CSV string
     const headers = [
       'competition', 'match_id', 'stage', 'kickoff_at',
-      'home_team', 'away_team', 'alias',
+      'home_team', 'away_team', 'alias', 'email',
       'bet_home', 'bet_away', 'submitted_at',
       'points', 'exact_hit'
     ]

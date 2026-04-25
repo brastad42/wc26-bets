@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
+import LogoutButton from '@/app/components/LogoutButton'
 
 const STAGES = ['Group', 'R32', 'R16', 'QF', 'SF', 'Final']
 
@@ -109,13 +110,16 @@ export default function LeaderboardPage() {
             <span className="text-2xl leading-none">🏆</span>
             <h1 className="text-xl font-medium text-white tracking-tight">Leaderboard</h1>
           </div>
-          <button
-            onClick={handleRefresh}
-            className="text-xs px-3 py-1 rounded-full"
-            style={{ color: 'rgba(255,255,255,0.75)', border: '0.5px solid rgba(255,255,255,0.3)' }}
-          >
-            ↻ Refresh
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleRefresh}
+              className="text-xs px-3 py-1 rounded-full"
+              style={{ color: 'rgba(255,255,255,0.75)', border: '0.5px solid rgba(255,255,255,0.3)' }}
+            >
+              ↻ Refresh
+            </button>
+            <LogoutButton />
+          </div>
         </div>
       </div>
 
