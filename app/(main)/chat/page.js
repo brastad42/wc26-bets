@@ -54,10 +54,10 @@ export default function ChatPage() {
     setCompetitionId(localStorage.getItem('competitionId'))
   }, [])
 
-  function scrollToBottom() {
+  function scrollToBottom(instant = false) {
     setTimeout(() => {
-      bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
-    }, 100)
+      bottomRef.current?.scrollIntoView({ behavior: instant ? 'instant' : 'smooth' })
+    }, 50)
   }
 
   useEffect(() => {
@@ -84,7 +84,7 @@ export default function ChatPage() {
         setHasMore(false)
       }
 
-      scrollToBottom()
+      scrollToBottom(true)
     }
 
     fetchInitial()
