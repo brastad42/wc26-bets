@@ -1,10 +1,12 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import LogoutButton from '@/app/components/LogoutButton'
 
 const EMOJIS = ['👍', '😊', '😂', '😢', '😣', '🤬', '💯', '🎉', '❤️']
+const PAGE_SIZE = 50
+const SCROLL_BTN_THRESHOLD = 200
 
 function formatTime(utcString) {
   const date = new Date(utcString)
@@ -27,17 +29,29 @@ export default function ChatPage() {
   const [showScrollBtn, setShowScrollBtn] = useState(false)
   const [competitionId, setCompetitionId] = useState(null)
   const [activeEmojiPicker, setActiveEmojiPicker] = useState(null)
+  const [loadingOlder, setLoadingOlder] = useState(false)
+  const [hasMore, setHasMore] = useState(true)
+
   const bottomRef = useRef(null)
   const scrollRef = useRef(null)
+  // Refs used inside callbacks to avoid stale closures
+  const hasMoreRef = useRef(true)
+  const loadingOlderRef = useRef(false)
+  const oldestCreatedAtRef = useRef(null)
+  // Saved scroll height before prepending older messages
+  const prevScrollHeightRef = useRef(null)
+
+  // After older messages are prepended, restore scroll position before browser paints
+  useLayoutEffect(() => {
+    if (prevScrollHeightRef.current !== null && scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight - prevScrollHeightRef.current
+      prevScrollHeightRef.current = null
+    }
+  }, [messages])
 
   useEffect(() => {
-    async function init() {
-      const id = localStorage.getItem('userId')
-      const compId = localStorage.getItem('competitionId')
-      setUserId(id)
-      setCompetitionId(compId)
-    }
-    init()
+    setUserId(localStorage.getItem('userId'))
+    setCompetitionId(localStorage.getItem('competitionId'))
   }, [])
 
   function scrollToBottom() {
@@ -47,46 +61,106 @@ export default function ChatPage() {
   }
 
   useEffect(() => {
-    async function fetchData() {
+    async function fetchInitial() {
       const [{ data: msgData }, { data: userData }, { data: reactionData }] = await Promise.all([
-        supabase.from('messages').select('*').eq('is_deleted', false).order('created_at'),
+        supabase
+          .from('messages')
+          .select('*')
+          .eq('is_deleted', false)
+          .order('created_at', { ascending: false })
+          .limit(PAGE_SIZE),
         supabase.from('users').select('id, alias'),
         supabase.from('reactions').select('*')
       ])
 
-      setMessages(msgData || [])
+      const msgs = (msgData || []).reverse()
+      setMessages(msgs)
       setUsers(userData || [])
       setReactions(reactionData || [])
+
+      if (msgs.length > 0) oldestCreatedAtRef.current = msgs[0].created_at
+      if (msgs.length < PAGE_SIZE) {
+        hasMoreRef.current = false
+        setHasMore(false)
+      }
+
       scrollToBottom()
     }
 
-    fetchData()
+    fetchInitial()
   }, [])
+
+  async function loadOlderMessages() {
+    if (loadingOlderRef.current || !hasMoreRef.current || !oldestCreatedAtRef.current) return
+
+    loadingOlderRef.current = true
+    setLoadingOlder(true)
+
+    const { data } = await supabase
+      .from('messages')
+      .select('*')
+      .eq('is_deleted', false)
+      .lt('created_at', oldestCreatedAtRef.current)
+      .order('created_at', { ascending: false })
+      .limit(PAGE_SIZE)
+
+    if (!data || data.length === 0) {
+      hasMoreRef.current = false
+      setHasMore(false)
+      loadingOlderRef.current = false
+      setLoadingOlder(false)
+      return
+    }
+
+    const older = data.reverse()
+    oldestCreatedAtRef.current = older[0].created_at
+
+    // Save height before prepend so useLayoutEffect can restore position
+    if (scrollRef.current) prevScrollHeightRef.current = scrollRef.current.scrollHeight
+
+    setMessages(prev => [...older, ...prev])
+    if (data.length < PAGE_SIZE) {
+      hasMoreRef.current = false
+      setHasMore(false)
+    }
+
+    loadingOlderRef.current = false
+    setLoadingOlder(false)
+  }
 
   useEffect(() => {
     const channel = supabase
       .channel('chat-v2')
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' },
         (payload) => {
+          if (payload.new.is_deleted) return
           setMessages(prev => {
-            const exists = prev.find(m => m.id === payload.new.id)
-            if (exists) return prev
+            if (prev.find(m => m.id === payload.new.id)) return prev
             return [...prev, payload.new]
           })
-          scrollToBottom()
+          // Only auto-scroll if user is already near the bottom
+          const el = scrollRef.current
+          if (el && el.scrollHeight - el.scrollTop - el.clientHeight < SCROLL_BTN_THRESHOLD) {
+            scrollToBottom()
+          }
         }
       )
       .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'messages' },
         (payload) => {
-          console.log('DELETE event received:', payload)
           setMessages(prev => prev.filter(m => m.id !== payload.old.id))
         }
-      )      
+      )
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'messages' },
+        (payload) => {
+          if (payload.new.is_deleted) {
+            setMessages(prev => prev.filter(m => m.id !== payload.new.id))
+          }
+        }
+      )
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'reactions' },
         (payload) => {
           setReactions(prev => {
-            const exists = prev.find(r => r.id === payload.new.id)
-            if (exists) return prev
+            if (prev.find(r => r.id === payload.new.id)) return prev
             return [...prev, payload.new]
           })
         }
@@ -96,51 +170,27 @@ export default function ChatPage() {
           setReactions(prev => prev.filter(r => r.id !== payload.old.id))
         }
       )
-      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'messages' },
-        (payload) => {
-          console.log('UPDATE event received:', payload)
-          if (payload.new.is_deleted) {
-            setMessages(prev => prev.filter(m => m.id !== payload.new.id))
-          }
-        }
-      )
       .subscribe()
 
-    return () => {
-      supabase.removeChannel(channel)
-    }
-  }, [])
-  useEffect(() => {
-    const interval = setInterval(async () => {
-      const { data } = await supabase
-        .from('messages')
-        .select('*')
-        .eq('is_deleted', false)
-        .order('created_at')
-      
-      if (data) setMessages(data)
-    }, 10000)
-
-    return () => clearInterval(interval)
+    return () => { supabase.removeChannel(channel) }
   }, [])
 
   function handleScroll() {
     const el = scrollRef.current
     if (!el) return
     const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight
-    setShowScrollBtn(distanceFromBottom > 100)
+    setShowScrollBtn(distanceFromBottom > SCROLL_BTN_THRESHOLD)
+    if (el.scrollTop < 50) loadOlderMessages()
   }
 
   async function handleSend() {
     if (!input.trim() || !userId || !competitionId) return
     setSending(true)
-
     await supabase.from('messages').insert({
       competition_id: competitionId,
       user_id: userId,
       content: input.trim()
     })
-
     setInput('')
     scrollToBottom()
     setSending(false)
@@ -157,23 +207,17 @@ export default function ChatPage() {
     const existing = reactions.find(
       r => r.message_id === messageId && r.user_id === userId && r.emoji === emoji
     )
-
     if (existing) {
       await supabase.from('reactions').delete().eq('id', existing.id)
     } else {
-      await supabase.from('reactions').insert({
-        message_id: messageId,
-        user_id: userId,
-        emoji
-      })
+      await supabase.from('reactions').insert({ message_id: messageId, user_id: userId, emoji })
     }
     setActiveEmojiPicker(null)
   }
 
   function getReactionsForMessage(messageId) {
-    const msgReactions = reactions.filter(r => r.message_id === messageId)
     const grouped = {}
-    for (const r of msgReactions) {
+    for (const r of reactions.filter(r => r.message_id === messageId)) {
       if (!grouped[r.emoji]) grouped[r.emoji] = []
       grouped[r.emoji].push(r.user_id)
     }
@@ -181,7 +225,7 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col">
+    <div className="h-screen overflow-hidden bg-gray-100 flex flex-col">
 
       {/* Sticky header */}
       <div className="sticky top-0 z-40" style={{ background: '#0a5c45' }}>
@@ -201,6 +245,13 @@ export default function ChatPage() {
         className="flex-1 overflow-y-auto px-3 py-3 pb-32"
         onClick={() => setActiveEmojiPicker(null)}
       >
+        {loadingOlder && (
+          <p className="text-xs text-gray-400 text-center py-2">Loading older messages...</p>
+        )}
+        {!hasMore && messages.length > 0 && (
+          <p className="text-xs text-gray-300 text-center py-2">Beginning of chat</p>
+        )}
+
         {messages.map(msg => {
           const isMe = msg.user_id === userId
           const user = users.find(u => u.id === msg.user_id)
@@ -214,9 +265,7 @@ export default function ChatPage() {
               </p>
 
               <div className={`relative inline-block ${isMe ? 'text-right' : ''}`}>
-                {/* Message bubble */}
-
-              <div
+                <div
                   className={`inline-block max-w-xs px-3 py-2 rounded-xl text-sm cursor-pointer select-none
                     ${isMe
                       ? 'bg-emerald-100 text-emerald-900 rounded-tr-none'
@@ -255,7 +304,7 @@ export default function ChatPage() {
                       <button
                         key={emoji}
                         onClick={() => handleReaction(msg.id, emoji)}
-                        className={`text-lg p-1 rounded-lg hover:bg-gray-100 
+                        className={`text-lg p-1 rounded-lg hover:bg-gray-100
                           ${reactions.find(r => r.message_id === msg.id && r.user_id === userId && r.emoji === emoji)
                             ? 'bg-emerald-50'
                             : ''
@@ -298,8 +347,8 @@ export default function ChatPage() {
       {/* Scroll to bottom button */}
       {showScrollBtn && (
         <button
-          onClick={scrollToBottom}
-          className="fixed bottom-24 right-4 w-8 h-8 bg-white border border-gray-200 rounded-full text-gray-400 text-sm shadow-sm"
+          onClick={() => bottomRef.current?.scrollIntoView({ behavior: 'instant' })}
+          className="fixed bottom-32 left-1/2 -translate-x-1/2 w-8 h-8 bg-white border border-gray-200 rounded-full text-gray-400 text-sm shadow-sm"
         >
           ↓
         </button>

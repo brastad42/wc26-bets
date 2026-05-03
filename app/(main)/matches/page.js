@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import MatchCard from './components/MatchCard'
 import LogoutButton from '@/app/components/LogoutButton'
@@ -43,6 +43,7 @@ export default function MatchesPage() {
   const [users, setUsers] = useState([])
   const [userId, setUserId] = useState(null)
   const [loading, setLoading] = useState(true)
+  const stageCache = useRef({})
   const [collapsedGroups, setCollapsedGroups] = useState(() => {
     try {
       const saved = sessionStorage.getItem('collapsedGroups')
@@ -66,7 +67,7 @@ export default function MatchesPage() {
   }
 
   function getGroupTeams(group) {
-    const groupMatches = matches.filter(m => m.stage === 'Group' && m.match_group === group)
+    const groupMatches = matches.filter(m => m.match_group === group)
     const teams = new Set()
     for (const m of groupMatches) {
       teams.add(m.home_team)
@@ -75,44 +76,58 @@ export default function MatchesPage() {
     return [...teams].slice(0, 4)
   }
 
+  async function fetchStage(stage) {
+    if (stageCache.current[stage]) {
+      setMatches(stageCache.current[stage].matches)
+      setBets(stageCache.current[stage].bets)
+      setLoading(false)
+      return
+    }
+
+    setLoading(true)
+
+    const { data: matchData } = await supabase
+      .from('matches')
+      .select('*')
+      .eq('stage', stage)
+      .order('match_time')
+
+    const matchIds = (matchData || []).map(m => m.id)
+    const { data: betData } = matchIds.length > 0
+      ? await supabase.from('bets').select('*').in('match_id', matchIds)
+      : { data: [] }
+
+    stageCache.current[stage] = { matches: matchData || [], bets: betData || [] }
+    setMatches(matchData || [])
+    setBets(betData || [])
+    setLoading(false)
+  }
+
   useEffect(() => {
     async function init() {
-      const id = localStorage.getItem('userId')
-      setUserId(id)
+      setUserId(localStorage.getItem('userId'))
+
+      const [{ data: stageData }, { data: userData }] = await Promise.all([
+        supabase.from('stages').select('*'),
+        supabase.from('users').select('id, alias')
+      ])
+
+      const statusMap = {}
+      for (const s of stageData || []) statusMap[s.stage] = s.is_open ? 'open' : 'locked'
+      setStageStatus(statusMap)
+      setUsers(userData || [])
+
+      await fetchStage('Group')
     }
     init()
   }, [])
 
-  useEffect(() => {
-    async function fetchData() {
-      setLoading(true)
+  function handleStageChange(stage) {
+    setActiveStage(stage)
+    fetchStage(stage)
+  }
 
-      const [{ data: matchData }, { data: stageData }, { data: betData }, { data: userData }] =
-        await Promise.all([
-          supabase.from('matches').select('*').order('match_time'),
-          supabase.from('stages').select('*'),
-          supabase.from('bets').select('*'),
-          supabase.from('users').select('id, alias')
-        ])
-
-      setMatches(matchData || [])
-      setBets(betData || [])
-      setUsers(userData || [])
-
-      const statusMap = {}
-      for (const s of stageData || []) {
-        statusMap[s.stage] = s.is_open ? 'open' : 'locked'
-      }
-      setStageStatus(statusMap)
-      setLoading(false)
-    }
-
-    fetchData()
-  }, [])
-
-  const filteredMatches = matches.filter(m => m.stage === activeStage)
-
-  const groupedMatches = filteredMatches.reduce((acc, match) => {
+  const groupedMatches = matches.reduce((acc, match) => {
     const key = match.match_group || 'Matches'
     if (!acc[key]) acc[key] = []
     acc[key].push(match)
@@ -120,7 +135,6 @@ export default function MatchesPage() {
   }, {})
 
   const sortedGroups = Object.entries(groupedMatches).sort(([a], [b]) => a.localeCompare(b))
-
   const status = stageStatus[activeStage] || 'open'
 
   return (
@@ -139,7 +153,7 @@ export default function MatchesPage() {
           {STAGES.map(stage => (
             <button
               key={stage}
-              onClick={() => setActiveStage(stage)}
+              onClick={() => handleStageChange(stage)}
               className={`px-3 py-1 rounded-full text-xs font-medium border whitespace-nowrap
                 ${activeStage === stage
                   ? 'bg-white text-[#0a5c45] border-white'
@@ -156,16 +170,13 @@ export default function MatchesPage() {
       <div className="px-3 pt-5">
         {loading ? (
           <p className="text-sm text-gray-400 text-center mt-8">Loading...</p>
-        ) : filteredMatches.length === 0 ? (
+        ) : matches.length === 0 ? (
           <p className="text-sm text-gray-400 text-center mt-8">No matches yet for this stage.</p>
         ) : (
           sortedGroups.map(([group, groupMatches]) => (
             <div key={group}>
               {activeStage === 'Group' && (
-                <div
-                  className="mt-4 mb-2"
-                  onClick={() => toggleGroup(group)}
-                >
+                <div className="mt-4 mb-2" onClick={() => toggleGroup(group)}>
                   <span className="cursor-pointer text-xs bg-gray-200 text-gray-500 px-3 py-1 rounded-full font-medium inline-flex items-center gap-2">
                     {isCollapsed(group) ? `Group ${group} ▸` : `Group ${group} ▾`}
                     {isCollapsed(group) && (
@@ -200,8 +211,13 @@ export default function MatchesPage() {
                   onBetSaved={(newBet) => {
                     setBets(prev => {
                       const exists = prev.find(b => b.id === newBet.id)
-                      if (exists) return prev.map(b => b.id === newBet.id ? newBet : b)
-                      return [...prev, newBet]
+                      const updated = exists
+                        ? prev.map(b => b.id === newBet.id ? newBet : b)
+                        : [...prev, newBet]
+                      if (stageCache.current[activeStage]) {
+                        stageCache.current[activeStage].bets = updated
+                      }
+                      return updated
                     })
                   }}
                 />
