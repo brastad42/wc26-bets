@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
 import LogoutButton from '@/app/components/LogoutButton'
 
-export const revalidate = 0
+export const revalidate = 3600
 
 const DEFAULT_SECTIONS = [
   {
