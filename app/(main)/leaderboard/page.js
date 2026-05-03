@@ -11,7 +11,6 @@ export default function LeaderboardPage() {
 
   useEffect(() => {
     setUserId(localStorage.getItem('userId'))
-    window.scrollTo({ top: 0, behavior: 'instant' })
   }, [])
 
   async function fetchLeaderboard() {

@@ -106,7 +106,6 @@ export default function MatchesPage() {
   useEffect(() => {
     async function init() {
       setUserId(localStorage.getItem('userId'))
-      window.scrollTo({ top: 0, behavior: 'instant' })
 
       const [{ data: stageData }, { data: userData }] = await Promise.all([
         supabase.from('stages').select('*'),
