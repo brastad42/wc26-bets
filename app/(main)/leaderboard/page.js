@@ -25,7 +25,7 @@ export default function LeaderboardPage() {
   }, [])
 
   return (
-    <div className="h-screen flex flex-col" style={{ background: '#f4f5f7' }}>
+    <div className="h-dvh flex flex-col" style={{ background: '#f4f5f7' }}>
 
       {/* Header */}
       <div className="flex-shrink-0" style={{ background: '#0a5c45' }}>

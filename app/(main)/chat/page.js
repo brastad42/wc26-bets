@@ -225,10 +225,10 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="h-screen overflow-hidden bg-gray-100 flex flex-col">
+    <div className="h-dvh overflow-hidden bg-gray-100 flex flex-col">
 
-      {/* Sticky header */}
-      <div className="sticky top-0 z-40" style={{ background: '#0a5c45' }}>
+      {/* Header */}
+      <div className="flex-shrink-0" style={{ background: '#0a5c45' }}>
         <div className="flex items-center justify-between px-4 pt-4 pb-3">
           <div className="flex items-center gap-3">
             <span className="text-2xl leading-none">💬</span>
