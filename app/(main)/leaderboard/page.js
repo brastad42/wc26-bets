@@ -4,101 +4,25 @@ import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import LogoutButton from '@/app/components/LogoutButton'
 
-const STAGES = ['Group', 'R32', 'R16', 'QF', 'SF', 'Final']
-
-function calcPoints(match, betHome, betAway) {
-  if (match.result_home === null || match.result_away === null) return 0
-  if (betHome === match.result_home && betAway === match.result_away) return 3
-  const resultWinner = Math.sign(match.result_home - match.result_away)
-  const betWinner = Math.sign(betHome - betAway)
-  if (resultWinner === betWinner) return 1
-  return 0
-}
-
-function isExact(match, betHome, betAway) {
-  if (match.result_home === null || match.result_away === null) return false
-  return betHome === match.result_home && betAway === match.result_away
-}
-
-function buildLeaderboard(users, bets, matches) {
-  const matchMap = Object.fromEntries(matches.map(m => [m.id, m]))
-
-  return users
-    .filter(u => u.is_active)
-    .map(user => {
-      const userBets = bets.filter(b => b.user_id === user.id)
-      let totalPoints = 0
-      let totalExact = 0
-      const exactByStage = Object.fromEntries(STAGES.map(s => [s, 0]))
-
-      for (const bet of userBets) {
-        const match = matchMap[bet.match_id]
-        if (!match) continue
-        const pts = calcPoints(match, bet.bet_home, bet.bet_away)
-        const exact = isExact(match, bet.bet_home, bet.bet_away)
-        totalPoints += pts
-        if (exact) {
-          totalExact++
-          exactByStage[match.stage]++
-        }
-      }
-
-      return { ...user, totalPoints, totalExact, exactByStage }
-    })
-    .sort((a, b) => {
-      if (b.totalPoints !== a.totalPoints) return b.totalPoints - a.totalPoints
-      if (b.totalExact !== a.totalExact) return b.totalExact - a.totalExact
-      for (const stage of STAGES) {
-        if (b.exactByStage[stage] !== a.exactByStage[stage]) {
-          return b.exactByStage[stage] - a.exactByStage[stage]
-        }
-      }
-      return 0
-    })
-}
-
 export default function LeaderboardPage() {
   const [leaderboard, setLeaderboard] = useState([])
   const [userId, setUserId] = useState(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    async function init() {
-      const id = localStorage.getItem('userId')
-      setUserId(id)
-    }
-    init()
+    setUserId(localStorage.getItem('userId'))
   }, [])
 
-  useEffect(() => {
-    async function fetchData() {
-      setLoading(true)
-
-      const [{ data: users }, { data: bets }, { data: matches }] = await Promise.all([
-        supabase.from('users').select('*'),
-        supabase.from('bets').select('*'),
-        supabase.from('matches').select('*')
-      ])
-
-      setLeaderboard(buildLeaderboard(users || [], bets || [], matches || []))
-      setLoading(false)
-    }
-
-    fetchData()
-  }, [])
-
-  async function handleRefresh() {
+  async function fetchLeaderboard() {
     setLoading(true)
-
-    const [{ data: users }, { data: bets }, { data: matches }] = await Promise.all([
-      supabase.from('users').select('*'),
-      supabase.from('bets').select('*'),
-      supabase.from('matches').select('*')
-    ])
-
-    setLeaderboard(buildLeaderboard(users || [], bets || [], matches || []))
+    const { data } = await supabase.rpc('get_leaderboard')
+    setLeaderboard(data || [])
     setLoading(false)
   }
+
+  useEffect(() => {
+    fetchLeaderboard()
+  }, [])
 
   return (
     <div className="min-h-screen pb-20" style={{ background: '#f4f5f7' }}>
@@ -112,7 +36,7 @@ export default function LeaderboardPage() {
           </div>
           <div className="flex items-center gap-2">
             <button
-              onClick={handleRefresh}
+              onClick={fetchLeaderboard}
               className="text-xs px-3 py-1 rounded-full"
               style={{ color: 'rgba(255,255,255,0.75)', border: '0.5px solid rgba(255,255,255,0.3)' }}
             >
@@ -156,10 +80,10 @@ export default function LeaderboardPage() {
                     {user.alias}{isMe ? ' (you)' : ''}
                   </span>
                   <span className={`text-sm font-medium text-center ${isMe ? 'text-emerald-700' : 'text-gray-900'}`}>
-                    {user.totalPoints}
+                    {user.total_points}
                   </span>
                   <span className={`text-sm text-center ${isMe ? 'text-emerald-700' : 'text-gray-500'}`}>
-                    {user.totalExact}
+                    {user.total_exact}
                   </span>
                 </div>
               )
