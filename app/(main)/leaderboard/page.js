@@ -25,10 +25,10 @@ export default function LeaderboardPage() {
   }, [])
 
   return (
-    <div className="min-h-screen pb-20" style={{ background: '#f4f5f7' }}>
+    <div className="h-screen flex flex-col" style={{ background: '#f4f5f7' }}>
 
-      {/* Sticky header */}
-      <div className="sticky top-0 z-40" style={{ background: '#0a5c45' }}>
+      {/* Header */}
+      <div className="flex-shrink-0" style={{ background: '#0a5c45' }}>
         <div className="flex items-center justify-between px-4 pt-4 pb-3">
           <div className="flex items-center gap-3">
             <span className="text-2xl leading-none">🏆</span>
@@ -48,7 +48,7 @@ export default function LeaderboardPage() {
       </div>
 
       {/* Table */}
-      <div className="px-3 pt-3">
+      <div className="flex-1 overflow-y-auto px-3 pt-3 pb-20">
         {loading ? (
           <p className="text-sm text-gray-400 text-center mt-8">Loading...</p>
         ) : (

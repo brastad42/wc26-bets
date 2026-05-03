@@ -48,8 +48,8 @@ export default async function RulesPage() {
   )
 
   return (
-    <div className="min-h-screen pb-20" style={{ background: '#f4f5f7' }}>
-      <div className="sticky top-0 z-40" style={{ background: '#0a5c45' }}>
+    <div className="h-screen flex flex-col" style={{ background: '#f4f5f7' }}>
+      <div className="flex-shrink-0" style={{ background: '#0a5c45' }}>
         <div className="flex items-center justify-between px-4 pt-4 pb-3">
           <div className="flex items-center gap-3">
             <span className="text-2xl leading-none">📋</span>
@@ -59,7 +59,7 @@ export default async function RulesPage() {
         </div>
       </div>
 
-      <div className="px-4 pt-4 space-y-5">
+      <div className="flex-1 overflow-y-auto px-4 pt-4 pb-20 space-y-5">
         {sections.map((section, i) => (
           <div key={i}>
             {i > 0 && <hr className="border-gray-200 mb-5" />}

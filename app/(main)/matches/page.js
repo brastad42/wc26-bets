@@ -138,10 +138,10 @@ export default function MatchesPage() {
   const status = stageStatus[activeStage] || 'open'
 
   return (
-    <div className="min-h-screen pb-20" style={{ background: '#f4f5f7' }}>
+    <div className="h-screen flex flex-col" style={{ background: '#f4f5f7' }}>
 
-      {/* Sticky header */}
-      <div className="sticky top-0 z-40" style={{ background: '#0a5c45' }}>
+      {/* Header */}
+      <div className="flex-shrink-0" style={{ background: '#0a5c45' }}>
         <div className="flex items-center justify-between px-4 pt-4 pb-3">
           <div className="flex items-center gap-3">
             <span className="text-2xl leading-none">⚽</span>
@@ -167,7 +167,7 @@ export default function MatchesPage() {
       </div>
 
       {/* Content */}
-      <div className="px-3 pt-5">
+      <div className="flex-1 overflow-y-auto px-3 pt-5 pb-20">
         {loading ? (
           <p className="text-sm text-gray-400 text-center mt-8">Loading...</p>
         ) : matches.length === 0 ? (
