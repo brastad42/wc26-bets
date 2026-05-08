@@ -5,12 +5,20 @@ export const revalidate = 3600
 
 const DEFAULT_SECTIONS = [
   {
+    title: '📢 Gamemaster Notice Board',
+    body: 'Important decrees from your all-powerful Gamemaster will appear here.'
+  },
+  {
     title: 'Joining',
     body: 'New user: Create an account by entering your chosen name, your email address, and the join code shared by the organizer. Your name will be visible to all other players.\nExisting user: Log in from any device or browser by entering your email address and the join code. You will be recognized automatically and can continue where you left off.'
   },
   {
     title: 'Placing bets',
     body: 'Submit your score prediction for every match before the first kickoff in each stage. You can update your bet any time before that deadline. After kickoff, bets are locked for the whole stage.'
+  },
+  {
+    title: 'Deadlines for placing bets',
+    body: 'Group: June 11 at 21:00 (Oslo time)\nR32: June 28 at 21:00\nR16: July 4 at 19:00\nQF: July 9 at 22:00\nSF: July 14 at 21:00\nFinal: July 18 at 23:00'
   },
   {
     title: 'DNS — did not submit',
@@ -62,7 +70,7 @@ export default async function RulesPage() {
       <div className="flex-1 overflow-y-auto px-4 pt-4 pb-20 space-y-5">
         {sections.map((section, i) => (
           <div key={i}>
-            {i > 0 && <hr className="border-gray-200 mb-5" />}
+            {i > 0 && <hr className="mb-5" style={{ borderTopWidth: '1.5px', borderColor: '#d0d0d0' }} />}
             <section>
               <p className="text-xs font-medium text-emerald-600 uppercase tracking-wide mb-2">
                 {section.title}

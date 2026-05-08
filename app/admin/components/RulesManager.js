@@ -5,12 +5,20 @@ import { supabase } from '@/lib/supabase'
 
 const DEFAULT_SECTIONS = [
   {
+    title: '📢 Gamemaster Notice Board',
+    body: 'Important decrees from your all-powerful Gamemaster will appear here.'
+  },
+  {
     title: 'Joining',
-    body: 'Enter your alias and the join code shared by the organizer. You are remembered automatically next time you open the app.'
+    body: 'New user: Create an account by entering your chosen name, your email address, and the join code shared by the organizer. Your name will be visible to all other players.\nExisting user: Log in from any device or browser by entering your email address and the join code. You will be recognized automatically and can continue where you left off.'
   },
   {
     title: 'Placing bets',
     body: 'Submit your score prediction for every match before the first kickoff in each stage. You can update your bet any time before that deadline. After kickoff, bets are locked for the whole stage.'
+  },
+  {
+    title: 'Deadlines for placing bets',
+    body: 'Group: June 11 at 21:00 (Oslo time)\nR32: June 28 at 21:00\nR16: July 4 at 19:00\nQF: July 9 at 22:00\nSF: July 14 at 21:00\nFinal: July 18 at 23:00'
   },
   {
     title: 'DNS — did not submit',
