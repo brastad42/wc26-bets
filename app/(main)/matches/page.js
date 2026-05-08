@@ -24,9 +24,8 @@ const FLAGS = {
 
 function formatTime(utcString) {
   const date = new Date(utcString)
-  const weekday = date.toLocaleString('en-GB', { timeZone: 'Europe/Oslo', weekday: 'short' })
+  const weekday = date.toLocaleString('en-GB', { weekday: 'short' })
   const rest = date.toLocaleString('en-GB', {
-    timeZone: 'Europe/Oslo',
     day: 'numeric',
     month: 'long',
     hour: '2-digit',

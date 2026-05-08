@@ -11,7 +11,6 @@ const SCROLL_BTN_THRESHOLD = 200
 function formatTime(utcString) {
   const date = new Date(utcString)
   return date.toLocaleString('en-GB', {
-    timeZone: 'Europe/Oslo',
     hour: '2-digit',
     minute: '2-digit',
     day: 'numeric',
