@@ -4,7 +4,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import LogoutButton from '@/app/components/LogoutButton'
 
-const EMOJIS = ['👍', '😊', '😂', '😢', '😣', '🤬', '💯', '🎉', '❤️', '👏', '💪']
+const EMOJIS = ['👍', '😊', '😂', '😢', '😣', '🤬', '💯', '🎉', '❤️', '👏', '💪','🙌']
 const PAGE_SIZE = 50
 const SCROLL_BTN_THRESHOLD = 200
 
