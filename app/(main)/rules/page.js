@@ -6,7 +6,7 @@ export const revalidate = 3600
 const DEFAULT_SECTIONS = [
   {
     title: 'Joining',
-    body: 'New user: Create an account by entering your chosen name or alias, your email address, and the join code shared by the organizer. Your alias will be visible to all other players.\nExisting user: Log in from any device or browser by entering your email address and the join code. You will be recognized automatically and can continue where you left off.'
+    body: 'New user: Create an account by entering your chosen name, your email address, and the join code shared by the organizer. Your name will be visible to all other players.\nExisting user: Log in from any device or browser by entering your email address and the join code. You will be recognized automatically and can continue where you left off.'
   },
   {
     title: 'Placing bets',

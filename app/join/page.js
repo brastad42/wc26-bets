@@ -52,7 +52,7 @@ export default function JoinPage() {
     if (userError) {
       if (userError.code === '23505') {
         if (userError.details?.includes('alias') || userError.message?.includes('alias')) {
-          setError('Sorry, this name/alias is already taken. Please try another.')
+          setError('Sorry, this name is already taken. Please try another.')
         } else {
           setError('This email is already in use.')
         }
@@ -118,38 +118,44 @@ export default function JoinPage() {
         </div>
 
         <div className="flex gap-2 mb-6">
-          <button
-            onClick={() => switchMode('new')}
-            className={`flex-1 h-11 rounded-xl text-sm font-medium border-2 transition-all ${
-              mode === 'new'
-                ? 'bg-emerald-500 border-emerald-500 text-white'
-                : 'bg-white border-gray-200 text-gray-700 hover:border-emerald-400'
-            }`}
-          >
-            New player
-          </button>
-          <button
-            onClick={() => switchMode('returning')}
-            className={`flex-1 h-11 rounded-xl text-sm font-medium border-2 transition-all ${
-              mode === 'returning'
-                ? 'bg-emerald-500 border-emerald-500 text-white'
-                : 'bg-white border-gray-200 text-gray-700 hover:border-emerald-400'
-            }`}
-          >
-            Returning player
-          </button>
+          <div className="flex-1 flex flex-col items-center gap-1">
+            <button
+              onClick={() => switchMode('new')}
+              className={`w-full h-11 rounded-xl text-sm font-medium border-2 transition-all ${
+                mode === 'new'
+                  ? 'bg-emerald-500 border-emerald-500 text-white'
+                  : 'bg-white border-gray-200 text-gray-700 hover:border-emerald-400'
+              }`}
+            >
+              Create account
+            </button>
+            <span className="text-xs text-gray-400">New player</span>
+          </div>
+          <div className="flex-1 flex flex-col items-center gap-1">
+            <button
+              onClick={() => switchMode('returning')}
+              className={`w-full h-11 rounded-xl text-sm font-medium border-2 transition-all ${
+                mode === 'returning'
+                  ? 'bg-emerald-500 border-emerald-500 text-white'
+                  : 'bg-white border-gray-200 text-gray-700 hover:border-emerald-400'
+              }`}
+            >
+              Sign in
+            </button>
+            <span className="text-xs text-gray-400">Existing player</span>
+          </div>
         </div>
 
         {mode === 'new' && (
           <>
             <div className="mb-4">
-              <label className="block text-xs text-gray-500 mb-1">Name / alias</label>
+              <label className="block text-xs text-gray-500 mb-1">Name</label>
               <input
                 ref={firstFieldRef}
                 type="text"
                 value={alias}
                 onChange={(e) => setAlias(e.target.value)}
-                placeholder="Enter your name or alias..."
+                placeholder="Enter your name..."
                 className="w-full h-10 border border-gray-200 rounded-lg px-3 text-base bg-gray-50 focus:outline-none focus:border-emerald-500 text-gray-900 placeholder-gray-400"
               />
             </div>
@@ -218,10 +224,12 @@ export default function JoinPage() {
           </>
         )}
 
-        <p className="text-xs text-gray-400 text-center leading-relaxed mt-4">
-          The join code can be provided by your group organizer.<br />
-          Your name will be visible to other players.
-        </p>
+        {mode && (
+          <p className="text-xs text-gray-400 text-center leading-relaxed mt-4">
+            The join code can be provided by your group organizer.<br />
+            Your name will be visible to other players.
+          </p>
+        )}
 
       </div>
     </div>
