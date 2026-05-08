@@ -63,31 +63,45 @@ export default function LeaderboardPage() {
             </div>
 
             {/* Rows */}
-            {leaderboard.map((user, index) => {
-              const isMe = user.id === userId
-              const rank = index + 1
-              const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : null
-              return (
-                <div
-                  key={user.id}
-                  className={`grid grid-cols-[28px_1fr_52px_52px] gap-1 px-4 py-3 border-b border-gray-50 items-center
-                    ${isMe ? 'bg-emerald-50' : ''}`}
-                >
-                  <span className={`text-sm font-medium ${isMe ? 'text-emerald-700' : 'text-gray-400'}`}>
-                    {medal ?? rank}
-                  </span>
-                  <span className={`text-sm ${isMe ? 'text-emerald-700 font-medium' : 'text-gray-900'}`}>
-                    {user.alias}{isMe ? ' (you)' : ''}
-                  </span>
-                  <span className={`text-sm font-medium text-center ${isMe ? 'text-emerald-700' : 'text-gray-900'}`}>
-                    {user.total_points}
-                  </span>
-                  <span className={`text-sm text-center ${isMe ? 'text-emerald-700' : 'text-gray-500'}`}>
-                    {user.total_exact}
-                  </span>
-                </div>
-              )
-            })}
+            {(() => {
+              const sorted = [...leaderboard].sort((a, b) => {
+                if (b.total_points !== a.total_points) return b.total_points - a.total_points
+                if (b.total_exact !== a.total_exact) return b.total_exact - a.total_exact
+                return a.alias.localeCompare(b.alias)
+              })
+              let currentRank = 1
+              return sorted.map((user, index) => {
+                if (index > 0) {
+                  const prev = sorted[index - 1]
+                  if (user.total_points !== prev.total_points || user.total_exact !== prev.total_exact) {
+                    currentRank = index + 1
+                  }
+                }
+                const rank = currentRank
+                const isMe = user.id === userId
+                const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : null
+                return (
+                  <div
+                    key={user.id}
+                    className={`grid grid-cols-[28px_1fr_52px_52px] gap-1 px-4 py-3 border-b border-gray-50 items-center
+                      ${isMe ? 'bg-emerald-50' : ''}`}
+                  >
+                    <span className={`text-sm font-medium ${isMe ? 'text-emerald-700' : 'text-gray-400'}`}>
+                      {medal ?? rank}
+                    </span>
+                    <span className={`text-sm ${isMe ? 'text-emerald-700 font-medium' : 'text-gray-900'}`}>
+                      {user.alias}{isMe ? ' (you)' : ''}
+                    </span>
+                    <span className={`text-sm font-medium text-center ${isMe ? 'text-emerald-700' : 'text-gray-900'}`}>
+                      {user.total_points}
+                    </span>
+                    <span className={`text-sm text-center ${isMe ? 'text-emerald-700' : 'text-gray-500'}`}>
+                      {user.total_exact}
+                    </span>
+                  </div>
+                )
+              })
+            })()}
 
             {/* Tiebreaker note */}
             <p className="text-xs text-gray-400 text-center py-3">
