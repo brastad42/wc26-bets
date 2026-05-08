@@ -183,7 +183,8 @@ export default function MatchCard({ match, status, userId, bets, users, formatTi
             .sort((a, b) => {
               const ptsA = a.pts ?? -1
               const ptsB = b.pts ?? -1
-              return ptsB - ptsA
+              if (ptsB !== ptsA) return ptsB - ptsA
+              return a.user.alias.localeCompare(b.user.alias)
             })
             .map(({ user, bet, pts }) => (
               
