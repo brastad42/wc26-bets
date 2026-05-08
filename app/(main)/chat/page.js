@@ -258,7 +258,7 @@ export default function ChatPage() {
           const hasReactions = Object.keys(msgReactions).length > 0
 
           return (
-            <div key={msg.id} className={`mb-3 ${isMe ? 'text-right' : ''}`}>
+            <div key={msg.id} className={`mb-3 group ${isMe ? 'text-right' : ''}`}>
               <p className="text-xs text-gray-400 mb-1">
                 {user?.alias || '—'} · {formatTime(msg.created_at)}
               </p>
@@ -292,16 +292,33 @@ export default function ChatPage() {
                   {msg.content}
                 </div>
 
+                {/* Hover reaction trigger — desktop only, hidden on touch devices */}
+                <button
+                  className={`absolute top-1 z-10 w-6 h-6 flex items-center justify-center text-base
+                    opacity-0 pointer-events-none transition-opacity
+                    [@media(hover:hover)]:group-hover:opacity-100 [@media(hover:hover)]:pointer-events-auto
+                    ${isMe ? 'right-full mr-1' : 'left-full ml-1'}`}
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setActiveEmojiPicker(prev => prev === msg.id ? null : msg.id)
+                  }}
+                >
+                  😊
+                </button>
+
                 {/* Emoji picker */}
                 {activeEmojiPicker === msg.id && (
                   <div
                     className={`absolute z-10 bg-white rounded-2xl shadow-lg border border-gray-100 p-2 flex gap-1 flex-wrap w-48 ${isMe ? 'right-0' : 'left-0'}`}
                     style={{ bottom: '100%', marginBottom: '4px' }}
+                    onMouseDown={(e) => e.stopPropagation()}
                     onClick={(e) => e.stopPropagation()}
                   >
                     {EMOJIS.map(emoji => (
                       <button
                         key={emoji}
+                        onMouseDown={(e) => e.stopPropagation()}
                         onClick={() => handleReaction(msg.id, emoji)}
                         className={`text-lg p-1 rounded-lg hover:bg-gray-100
                           ${reactions.find(r => r.message_id === msg.id && r.user_id === userId && r.emoji === emoji)
