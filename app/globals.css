@@ -42,8 +42,10 @@ body {
 
   .tab-bar,
   .chat-input {
-    max-width: 100%;
     left: 0;
+    right: 0;
+    width: 100%;
+    max-width: 100%;
     transform: none;
   }
 }
