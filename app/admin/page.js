@@ -10,7 +10,7 @@ import BetExport from './components/BetExport'
 import AdminSection from './components/AdminSection'
 import RulesManager from './components/RulesManager'
 
-const ADMIN_CODE = 'admin2026'
+const ADMIN_CODE = process.env.NEXT_PUBLIC_ADMIN_CODE
 
 export default function AdminPage() {
   const [code, setCode] = useState('')
