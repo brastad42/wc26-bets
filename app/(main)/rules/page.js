@@ -9,6 +9,15 @@ const markdownComponents = {
   strong: ({ children }) => (
     <strong className="font-semibold text-gray-900">{children}</strong>
   ),
+  ol: ({ node, ...props }) => (
+    <ol className="list-decimal list-inside text-sm text-gray-700 leading-relaxed mb-1" {...props} />
+  ),
+  ul: ({ node, ...props }) => (
+    <ul className="list-disc list-inside text-sm text-gray-700 leading-relaxed mb-1" {...props} />
+  ),
+  li: ({ node, ...props }) => (
+    <li className="text-gray-700" {...props} />
+  ),
 }
 
 export const revalidate = 3600
