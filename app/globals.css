@@ -39,4 +39,11 @@ body {
     max-width: 100%;
     box-shadow: none;
   }
+
+  .tab-bar,
+  .chat-input {
+    max-width: 100%;
+    left: 0;
+    transform: none;
+  }
 }

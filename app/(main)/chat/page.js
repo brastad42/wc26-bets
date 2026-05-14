@@ -393,7 +393,7 @@ export default function ChatPage() {
       )}
 
       {/* Input bar */}
-      <div className="fixed bottom-16 left-1/2 -translate-x-1/2 w-full max-w-[480px] bg-white border-t border-gray-100 px-3 py-2 flex gap-2 items-center">
+      <div className="chat-input fixed bottom-16 left-1/2 -translate-x-1/2 w-full max-w-[480px] bg-white border-t border-gray-100 px-3 py-2 flex gap-2 items-center">
         <input
           type="text"
           value={input}
