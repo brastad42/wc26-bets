@@ -12,7 +12,7 @@ const tabs = [
 export default function TabBar() {
   const pathname = usePathname()
   return (
-    <div className="tab-bar fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[480px] flex justify-around items-center h-16 px-2 z-50"
+    <div className="tab-bar fixed bottom-0 w-full flex justify-around items-center h-16 px-2 z-50"
       style={{ background: '#0a5c45' }}>
       {tabs.map(tab => {
         const active = pathname === tab.href
