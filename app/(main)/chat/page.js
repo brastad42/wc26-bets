@@ -61,7 +61,7 @@ export default function ChatPage() {
 
   useEffect(() => {
     async function fetchInitial() {
-      const [{ data: msgData }, { data: userData }, { data: reactionData }] = await Promise.all([
+      const [{ data: msgData }, { data: userData }] = await Promise.all([
         supabase
           .from('messages')
           .select('*')
@@ -69,10 +69,15 @@ export default function ChatPage() {
           .order('created_at', { ascending: false })
           .limit(PAGE_SIZE),
         supabase.from('users').select('id, alias'),
-        supabase.from('reactions').select('*')
       ])
 
       const msgs = (msgData || []).reverse()
+      const msgIds = msgs.map(m => m.id)
+
+      const { data: reactionData } = msgIds.length > 0
+        ? await supabase.from('reactions').select('*').in('message_id', msgIds)
+        : { data: [] }
+
       setMessages(msgs)
       setUsers(userData || [])
       setReactions(reactionData || [])
@@ -114,10 +119,16 @@ export default function ChatPage() {
     const older = data.reverse()
     oldestCreatedAtRef.current = older[0].created_at
 
+    const { data: olderReactions } = await supabase
+      .from('reactions')
+      .select('*')
+      .in('message_id', older.map(m => m.id))
+
     // Save height before prepend so useLayoutEffect can restore position
     if (scrollRef.current) prevScrollHeightRef.current = scrollRef.current.scrollHeight
 
     setMessages(prev => [...older, ...prev])
+    if (olderReactions?.length) setReactions(prev => [...olderReactions, ...prev])
     if (data.length < PAGE_SIZE) {
       hasMoreRef.current = false
       setHasMore(false)
