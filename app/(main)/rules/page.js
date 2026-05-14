@@ -1,5 +1,15 @@
 import { createClient } from '@supabase/supabase-js'
 import LogoutButton from '@/app/components/LogoutButton'
+import ReactMarkdown from 'react-markdown'
+
+const markdownComponents = {
+  p: ({ children }) => (
+    <p className="text-sm text-gray-700 leading-relaxed mb-1 last:mb-0">{children}</p>
+  ),
+  strong: ({ children }) => (
+    <strong className="font-semibold text-gray-900">{children}</strong>
+  ),
+}
 
 export const revalidate = 3600
 
@@ -95,9 +105,11 @@ export default async function RulesPage() {
                   </div>
                 </div>
               )}
-              {section.body.split('\n').map((line, j) => (
-                <p key={j} className={`text-sm text-gray-700 leading-relaxed last:mb-0 ${line ? 'mb-1' : 'mb-3'}`}>{line}</p>
-              ))}
+              {section.body.split('\n').map((line, j) =>
+                line
+                  ? <ReactMarkdown key={j} components={markdownComponents}>{line}</ReactMarkdown>
+                  : <p key={j} className="mb-3" />
+              )}
             </section>
           </div>
         ))}
