@@ -48,8 +48,6 @@ async function handleDelete(messageId) {
     .eq('id', messageId)
     .select()
 
-  console.log('Delete result:', data, error)
-
   if (!error) {
     setMessages(prev => prev.filter(m => m.id !== messageId))
   }
