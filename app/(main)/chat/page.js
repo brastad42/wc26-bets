@@ -64,7 +64,7 @@ export default function ChatPage() {
       const [{ data: msgData }, { data: userData }] = await Promise.all([
         supabase
           .from('messages')
-          .select('*')
+          .select('id, user_id, content, created_at, is_deleted')
           .eq('is_deleted', false)
           .order('created_at', { ascending: false })
           .limit(PAGE_SIZE),

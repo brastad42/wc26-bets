@@ -93,7 +93,7 @@ export default function MatchesPage() {
 
     const matchIds = (matchData || []).map(m => m.id)
     const { data: betData } = matchIds.length > 0
-      ? await supabase.from('bets').select('*').in('match_id', matchIds)
+      ? await supabase.from('bets').select('id, match_id, user_id, bet_home, bet_away').in('match_id', matchIds)
       : { data: [] }
 
     stageCache.current[stage] = { matches: matchData || [], bets: betData || [] }
@@ -107,7 +107,7 @@ export default function MatchesPage() {
       setUserId(localStorage.getItem('userId'))
 
       const [{ data: stageData }, { data: userData }] = await Promise.all([
-        supabase.from('stages').select('*'),
+        supabase.from('stages').select('stage, is_open'),
         supabase.from('users').select('id, alias')
       ])
 

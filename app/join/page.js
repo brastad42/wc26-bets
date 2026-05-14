@@ -46,7 +46,7 @@ export default function JoinPage() {
         alias: alias.trim(),
         email: email.trim().toLowerCase()
       })
-      .select()
+      .select('id')
       .single()
 
     if (userError) {
@@ -86,7 +86,7 @@ export default function JoinPage() {
 
     const { data: user, error: userError } = await supabase
       .from('users')
-      .select()
+      .select('id')
       .eq('competition_id', competition.id)
       .eq('email', email.trim().toLowerCase())
       .single()
