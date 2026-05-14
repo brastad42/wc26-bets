@@ -31,6 +31,10 @@ const DEFAULT_SECTIONS = [
   {
     title: 'Leaderboard & tie-breakers',
     body: 'Sorted by: 1. Total points · 2. Total exact hits · 3. Exact hits by stage in order: Group → R32 → R16 → QF → SF → Final'
+  },
+  {
+    title: 'Credits',
+    body: 'Gamemaster: Erik Olsson Standal — mastermind behind the competition and all executive decisions. All complaints go here.\n\nDeveloper: Thomas Rasch Brastad — designed and built this app, powered by coffee and AI.'
   }
 ]
 
