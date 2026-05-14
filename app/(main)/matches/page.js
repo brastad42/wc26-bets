@@ -42,6 +42,7 @@ export default function MatchesPage() {
   const [users, setUsers] = useState([])
   const [userId, setUserId] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
   const stageCache = useRef({})
   const [collapsedGroups, setCollapsedGroups] = useState(() => {
     try {
@@ -84,12 +85,19 @@ export default function MatchesPage() {
     }
 
     setLoading(true)
+    setError(null)
 
-    const { data: matchData } = await supabase
+    const { data: matchData, error: matchError } = await supabase
       .from('matches')
       .select('*')
       .eq('stage', stage)
       .order('match_time')
+
+    if (matchError) {
+      setError('Could not load matches — please refresh the page.')
+      setLoading(false)
+      return
+    }
 
     const matchIds = (matchData || []).map(m => m.id)
     const { data: betData } = matchIds.length > 0
@@ -167,7 +175,11 @@ export default function MatchesPage() {
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto px-3 pt-3 pb-20">
-        {loading ? (
+        {error ? (
+          <div className="mx-4 mt-4 p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-600 text-center">
+            {error}
+          </div>
+        ) : loading ? (
           <p className="text-sm text-gray-400 text-center mt-8">Loading...</p>
         ) : matches.length === 0 ? (
           <p className="text-sm text-gray-400 text-center mt-8">No matches yet for this stage.</p>

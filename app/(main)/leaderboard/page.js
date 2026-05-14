@@ -8,6 +8,7 @@ export default function LeaderboardPage() {
   const [leaderboard, setLeaderboard] = useState([])
   const [userId, setUserId] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
 
   useEffect(() => {
     setUserId(localStorage.getItem('userId'))
@@ -15,7 +16,13 @@ export default function LeaderboardPage() {
 
   async function fetchLeaderboard() {
     setLoading(true)
-    const { data } = await supabase.rpc('get_leaderboard')
+    setError(null)
+    const { data, error: fetchError } = await supabase.rpc('get_leaderboard')
+    if (fetchError) {
+      setError('Could not load leaderboard — please refresh the page.')
+      setLoading(false)
+      return
+    }
     setLeaderboard(data || [])
     setLoading(false)
   }
@@ -51,6 +58,10 @@ export default function LeaderboardPage() {
       <div className="flex-1 overflow-y-auto px-3 pt-3 pb-20">
         {loading ? (
           <p className="text-sm text-gray-400 text-center mt-8">Loading...</p>
+        ) : error ? (
+          <div className="mx-4 mt-4 p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-600 text-center">
+            {error}
+          </div>
         ) : (
           <div className="bg-white rounded-2xl overflow-hidden shadow-sm">
 

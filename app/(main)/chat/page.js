@@ -30,6 +30,7 @@ export default function ChatPage() {
   const [activeEmojiPicker, setActiveEmojiPicker] = useState(null)
   const [loadingOlder, setLoadingOlder] = useState(false)
   const [hasMore, setHasMore] = useState(true)
+  const [error, setError] = useState(null)
 
   const bottomRef = useRef(null)
   const scrollRef = useRef(null)
@@ -61,7 +62,7 @@ export default function ChatPage() {
 
   useEffect(() => {
     async function fetchInitial() {
-      const [{ data: msgData }, { data: userData }] = await Promise.all([
+      const [{ data: msgData, error: msgError }, { data: userData }] = await Promise.all([
         supabase
           .from('messages')
           .select('id, user_id, content, created_at, is_deleted')
@@ -70,6 +71,11 @@ export default function ChatPage() {
           .limit(PAGE_SIZE),
         supabase.from('users').select('id, alias'),
       ])
+
+      if (msgError) {
+        setError('Could not load messages — please refresh the page.')
+        return
+      }
 
       const msgs = (msgData || []).reverse()
       const msgIds = msgs.map(m => m.id)
@@ -255,6 +261,11 @@ export default function ChatPage() {
         className="flex-1 overflow-y-auto px-3 py-3 pb-32"
         onClick={() => setActiveEmojiPicker(null)}
       >
+        {error && (
+          <div className="mx-4 mt-4 p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-600 text-center">
+            {error}
+          </div>
+        )}
         {loadingOlder && (
           <p className="text-xs text-gray-400 text-center py-2">Loading older messages...</p>
         )}
