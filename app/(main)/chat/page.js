@@ -258,7 +258,8 @@ export default function ChatPage() {
       <div
         ref={scrollRef}
         onScroll={handleScroll}
-        className="flex-1 overflow-y-auto px-3 py-3 pb-32"
+        className="flex-1 overflow-y-auto px-3 py-3"
+        style={{ paddingBottom: 'calc(7.5rem + env(safe-area-inset-bottom))' }}
         onClick={() => setActiveEmojiPicker(null)}
       >
         {error && (
@@ -386,14 +387,16 @@ export default function ChatPage() {
       {showScrollBtn && (
         <button
           onClick={() => bottomRef.current?.scrollIntoView({ behavior: 'instant' })}
-          className="fixed bottom-32 left-1/2 -translate-x-1/2 w-8 h-8 bg-white border border-gray-200 rounded-full text-gray-400 text-sm shadow-sm"
+          className="fixed left-1/2 -translate-x-1/2 w-8 h-8 bg-white border border-gray-200 rounded-full text-gray-400 text-sm shadow-sm"
+          style={{ bottom: 'calc(7.5rem + env(safe-area-inset-bottom))' }}
         >
           ↓
         </button>
       )}
 
       {/* Input bar */}
-      <div className="chat-input fixed bottom-16 w-full bg-white border-t border-gray-100 px-3 py-2 flex gap-2 items-center">
+      <div className="chat-input fixed w-full bg-white border-t border-gray-100 px-3 py-2 flex gap-2 items-center"
+        style={{ bottom: 'calc(4rem + env(safe-area-inset-bottom))' }}>
         <input
           type="text"
           value={input}

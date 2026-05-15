@@ -90,7 +90,7 @@ export default async function RulesPage() {
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-4 pt-4 pb-20 space-y-5">
+      <div className="flex-1 overflow-y-auto px-4 pt-4 space-y-5" style={{ paddingBottom: 'calc(4rem + env(safe-area-inset-bottom))' }}>
         {sections.map((section, i) => (
           <div key={i}>
             {i > 0 && <hr className="mb-5" style={{ borderTopWidth: '1.5px', borderColor: '#d0d0d0' }} />}

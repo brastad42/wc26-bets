@@ -11,6 +11,12 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover',
+};
+
 export const metadata = {
   title: 'World Cup 2026 — Betting Competition',
   // description: 'Join the game. Place your bets.',

@@ -174,7 +174,7 @@ export default function MatchesPage() {
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto px-3 pt-3 pb-20">
+      <div className="flex-1 overflow-y-auto px-3 pt-3" style={{ paddingBottom: 'calc(4rem + env(safe-area-inset-bottom))' }}>
         {error ? (
           <div className="mx-4 mt-4 p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-600 text-center">
             {error}

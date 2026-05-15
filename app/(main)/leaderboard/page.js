@@ -55,7 +55,7 @@ export default function LeaderboardPage() {
       </div>
 
       {/* Table */}
-      <div className="flex-1 overflow-y-auto px-3 pt-3 pb-20">
+      <div className="flex-1 overflow-y-auto px-3 pt-3" style={{ paddingBottom: 'calc(4rem + env(safe-area-inset-bottom))' }}>
         {loading ? (
           <p className="text-sm text-gray-400 text-center mt-8">Loading...</p>
         ) : error ? (

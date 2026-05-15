@@ -34,7 +34,12 @@ body {
   box-shadow: 0 0 40px rgba(0, 0, 0, 0.12);
 }
 
-.tab-bar,
+.tab-bar {
+  max-width: 480px;
+  margin: 0 auto;
+  width: 100%;
+}
+
 .chat-input {
   left: 50%;
   transform: translateX(-50%);
@@ -47,7 +52,10 @@ body {
     box-shadow: none;
   }
 
-  .tab-bar,
+  .tab-bar {
+    max-width: 100%;
+  }
+
   .chat-input {
     left: 0;
     right: 0;
