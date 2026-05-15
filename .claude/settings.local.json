@@ -1,7 +1,19 @@
 {
   "permissions": {
     "allow": [
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(Get-Content \"c:\\\\Users\\\\thoma\\\\wc26-bets\\\\package.json\")",
+      "Bash(npm install *)",
+      "PowerShell(git add package.json package-lock.json next.config.mjs \"app/\\(main\\)/rules/page.js\")",
+      "PowerShell(git push)",
+      "PowerShell(git add \"app/\\(main\\)/chat/page.js\")",
+      "PowerShell(git add \"app/admin/page.js\" \".env.example\" \".gitignore\")",
+      "PowerShell(git add \"app/admin/components/ChatManager.js\")",
+      "PowerShell(git add \"app/components/TabBar.js\" \"app/\\(main\\)/chat/page.js\" \"app/globals.css\")",
+      "PowerShell(git add \"app/globals.css\")",
+      "PowerShell(git add \"app/layout.js\")"
     ]
   }
 }
