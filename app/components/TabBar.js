@@ -12,12 +12,9 @@ const tabs = [
 export default function TabBar() {
   const pathname = usePathname()
   return (
-    <div
-      className="fixed bottom-0 left-0 right-0 z-50"
-      style={{ background: '#0a5c45', paddingBottom: 'env(safe-area-inset-bottom)' }}
-    >
+    <div className="tab-bar-outer">
       <div
-        className="tab-bar flex justify-around items-center h-16 px-2"
+        className="flex justify-around items-center h-16 px-2"
         style={{ touchAction: 'manipulation' }}
       >
         {tabs.map(tab => {
