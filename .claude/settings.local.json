@@ -13,7 +13,8 @@
       "PowerShell(git add \"app/admin/components/ChatManager.js\")",
       "PowerShell(git add \"app/components/TabBar.js\" \"app/\\(main\\)/chat/page.js\" \"app/globals.css\")",
       "PowerShell(git add \"app/globals.css\")",
-      "PowerShell(git add \"app/layout.js\")"
+      "PowerShell(git add \"app/layout.js\")",
+      "Bash(python -c ' *)"
     ]
   }
 }

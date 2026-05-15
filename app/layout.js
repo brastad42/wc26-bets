@@ -13,10 +13,10 @@ const geistMono = Geist_Mono({
 
 export const metadata = {
   title: 'World Cup 2026 — Betting Competition',
-  description: 'Join the game. Place your bets.',
+  // description: 'Join the game. Place your bets.',
   openGraph: {
     title: 'World Cup 2026 — Betting Competition',
-    description: 'Join the game. Place your bets.',
+    // description: 'Join the game. Place your bets.',
     url: 'https://wc26-bets.vercel.app',
     siteName: 'WC26 Bets',
   },
