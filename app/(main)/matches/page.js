@@ -200,8 +200,8 @@ export default function MatchesPage() {
                               key={team}
                               src={`https://flagcdn.com/w40/${code}.png`}
                               alt={team}
-                              className="w-4 rounded-sm"
-                              style={{ height: 'auto' }}
+                              className="rounded-sm"
+                              style={{ width: '1rem', height: 'auto' }}
                             />
                           )
                         })}

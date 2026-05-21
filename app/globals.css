@@ -26,12 +26,25 @@ body {
 }
 
 .app-container {
-  max-width: 480px;
+  max-width: 100%;
   margin: 0 auto;
   min-height: 100dvh;
   position: relative;
   background: #f4f5f7;
-  box-shadow: 0 0 40px rgba(0, 0, 0, 0.12);
+  box-shadow: none;
+}
+
+@media (min-width: 768px) {
+  .app-container {
+    max-width: 640px;
+    box-shadow: 0 0 40px rgba(0, 0, 0, 0.12);
+  }
+}
+
+@media (min-width: 1024px) {
+  .app-container {
+    max-width: 720px;
+  }
 }
 
 .tab-bar-outer {
@@ -39,17 +52,41 @@ body {
   bottom: 0;
   left: 50%;
   transform: translateX(-50%);
-  width: 480px;
+  width: 100%;
   max-width: 100%;
   z-index: 50;
   background: #0a5c45;
   padding-bottom: env(safe-area-inset-bottom);
 }
 
+@media (min-width: 768px) {
+  .tab-bar-outer {
+    width: 640px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .tab-bar-outer {
+    width: 720px;
+  }
+}
+
 .chat-input {
   left: 50%;
   transform: translateX(-50%);
-  max-width: 480px;
+  max-width: 100%;
+}
+
+@media (min-width: 768px) {
+  .chat-input {
+    max-width: 640px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .chat-input {
+    max-width: 720px;
+  }
 }
 
 @media (max-height: 500px) and (orientation: landscape) {
