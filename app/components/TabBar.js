@@ -3,10 +3,11 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
 const tabs = [
-  { label: 'Matches',     href: '/matches',     emoji: '⚽' },
+  { label: 'Matches', href: '/matches',     emoji: '⚽' },
   { label: 'Leaderboard', href: '/leaderboard', emoji: '🏆' },
-  { label: 'Chat',        href: '/chat',        emoji: '💬' },
-  { label: 'Rules',       href: '/rules',       emoji: '📋' },
+  { label: 'Awards',  href: '/stats',       emoji: '🏅' },
+  { label: 'Chat',    href: '/chat',        emoji: '💬' },
+  { label: 'Rules',   href: '/rules',       emoji: '📋' },
 ]
 
 export default function TabBar() {
