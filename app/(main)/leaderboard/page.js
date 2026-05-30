@@ -6,7 +6,7 @@ import LogoutButton from '@/app/components/LogoutButton'
 
 export default function LeaderboardPage() {
   const [leaderboard, setLeaderboard] = useState([])
-  const [userId] = useState(() => localStorage.getItem('userId'))
+  const [userId] = useState(() => typeof window !== 'undefined' ? localStorage.getItem('userId') : null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
