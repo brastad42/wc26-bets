@@ -3,11 +3,25 @@
 import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
+import { countries } from 'countries-list'
+
+const extraCountries = [
+  { code: 'gb-eng', name: 'England' },
+  { code: 'gb-nir', name: 'Northern Ireland' },
+  { code: 'gb-sct', name: 'Scotland' },
+  { code: 'gb-wls', name: 'Wales' },
+]
+
+const countryList = [
+  ...Object.entries(countries).map(([code, data]) => ({ code, name: data.name })),
+  ...extraCountries,
+].sort((a, b) => a.name.localeCompare(b.name))
 
 export default function JoinPage() {
   const router = useRouter()
   const [mode, setMode] = useState(null) // 'new' | 'returning'
   const [alias, setAlias] = useState('')
+  const [countryCode, setCountryCode] = useState('')
   const [email, setEmail] = useState('')
   const [joinCode, setJoinCode] = useState('')
   const [error, setError] = useState('')
@@ -18,6 +32,7 @@ export default function JoinPage() {
     setMode(newMode)
     setError('')
     setAlias('')
+    setCountryCode('')
     setEmail('')
     setJoinCode('')
     setTimeout(() => firstFieldRef.current?.focus(), 0)
@@ -44,7 +59,8 @@ export default function JoinPage() {
       .insert({
         competition_id: competition.id,
         alias: alias.trim(),
-        email: email.trim().toLowerCase()
+        email: email.trim().toLowerCase(),
+        country_code: countryCode || null
       })
       .select('id')
       .single()
@@ -168,6 +184,20 @@ export default function JoinPage() {
                 placeholder="Enter your email..."
                 className="w-full h-10 border border-gray-200 rounded-lg px-3 text-base bg-gray-50 focus:outline-none focus:border-emerald-500 text-gray-900 placeholder-gray-400"
               />
+            </div>
+            <div className="mb-4">
+              <label className="block text-xs text-gray-500 mb-1">Nationality</label>
+              <select
+                value={countryCode}
+                onChange={(e) => setCountryCode(e.target.value)}
+                style={{ color: countryCode ? '#111827' : '#9ca3af' }}
+                className="w-full h-10 border border-gray-200 rounded-lg px-3 text-base bg-gray-50 focus:outline-none focus:border-emerald-500"
+              >
+                <option value="">Select your country...</option>
+                {countryList.map(c => (
+                  <option key={c.code} value={c.code} style={{ color: '#111827' }}>{c.name}</option>
+                ))}
+              </select>
             </div>
             <div className="mb-4">
               <label className="block text-xs text-gray-500 mb-1">Join code</label>

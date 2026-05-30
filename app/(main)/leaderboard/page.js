@@ -17,13 +17,18 @@ export default function LeaderboardPage() {
   async function fetchLeaderboard() {
     setLoading(true)
     setError(null)
-    const { data, error: fetchError } = await supabase.rpc('get_leaderboard')
+    const [{ data, error: fetchError }, { data: usersData }] = await Promise.all([
+      supabase.rpc('get_leaderboard'),
+      supabase.from('users').select('id, country_code'),
+    ])
     if (fetchError) {
       setError('Could not load leaderboard — please refresh the page.')
       setLoading(false)
       return
     }
-    setLeaderboard(data || [])
+    const countryMap = {}
+    usersData?.forEach(u => { countryMap[u.id] = u.country_code })
+    setLeaderboard((data || []).map(u => ({ ...u, country_code: countryMap[u.id] ?? null })))
     setLoading(false)
   }
 
@@ -100,8 +105,19 @@ export default function LeaderboardPage() {
                     <span className={`text-sm font-medium ${isMe ? 'text-emerald-700' : 'text-gray-400'}`}>
                       {medal ?? rank}
                     </span>
-                    <span className={`text-sm ${isMe ? 'text-emerald-700 font-medium' : 'text-gray-900'}`}>
-                      {user.alias}{isMe ? ' (you)' : ''}
+                    <span className={`text-sm flex items-center gap-1.5 min-w-0 ${isMe ? 'text-emerald-700 font-medium' : 'text-gray-900'}`}>
+                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {user.alias}{isMe ? ' (you)' : ''}
+                      </span>
+                      {user.country_code && (
+                        <img
+                          src={`https://flagcdn.com/20x15/${user.country_code.toLowerCase()}.png`}
+                          width={20}
+                          height={15}
+                          style={{ borderRadius: 2, flexShrink: 0 }}
+                          alt={user.country_code}
+                        />
+                      )}
                     </span>
                     <span className={`text-sm font-medium text-center ${isMe ? 'text-emerald-700' : 'text-gray-900'}`}>
                       {user.total_points}
