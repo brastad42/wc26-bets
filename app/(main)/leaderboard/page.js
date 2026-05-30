@@ -6,17 +6,11 @@ import LogoutButton from '@/app/components/LogoutButton'
 
 export default function LeaderboardPage() {
   const [leaderboard, setLeaderboard] = useState([])
-  const [userId, setUserId] = useState(null)
+  const [userId] = useState(() => localStorage.getItem('userId'))
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
-  useEffect(() => {
-    setUserId(localStorage.getItem('userId'))
-  }, [])
-
   async function fetchLeaderboard() {
-    setLoading(true)
-    setError(null)
     const [{ data, error: fetchError }, { data: usersData }] = await Promise.all([
       supabase.rpc('get_leaderboard'),
       supabase.from('users').select('id, country_code'),
@@ -33,6 +27,7 @@ export default function LeaderboardPage() {
   }
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchLeaderboard()
   }, [])
 
@@ -48,7 +43,7 @@ export default function LeaderboardPage() {
           </div>
           <div className="flex items-center gap-2">
             <button
-              onClick={fetchLeaderboard}
+              onClick={() => { setLoading(true); setError(null); fetchLeaderboard() }}
               className="text-xs px-3 py-1 rounded-full"
               style={{ color: 'rgba(255,255,255,0.75)', border: '0.5px solid rgba(255,255,255,0.3)' }}
             >
