@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Image from 'next/image'
 import { supabase } from '@/lib/supabase'
 import LogoutButton from '@/app/components/LogoutButton'
 
@@ -105,12 +106,13 @@ export default function LeaderboardPage() {
                         {user.alias}{isMe ? ' (you)' : ''}
                       </span>
                       {user.country_code && (
-                        <img
-                          src={`https://flagcdn.com/20x15/${user.country_code.toLowerCase()}.png`}
-                          width={20}
-                          height={15}
-                          style={{ borderRadius: 2, flexShrink: 0 }}
+                        <Image
+                          src={`https://flagcdn.com/w40/${user.country_code.toLowerCase()}.png`}
                           alt={user.country_code}
+                          width={20}
+                          height={14}
+                          className="flex-shrink-0 rounded-sm"
+                          style={{ width: '20px', height: '14px', objectFit: 'cover' }}
                         />
                       )}
                     </span>
