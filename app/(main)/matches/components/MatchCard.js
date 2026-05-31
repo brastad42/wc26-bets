@@ -41,6 +41,7 @@ export default function MatchCard({ match, status, userId, bets, users, formatTi
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState(null)
   const [showAllBets, setShowAllBets] = useState(false)
+  const [allBets, setAllBets] = useState(null)
 
   async function handleSaveBet() {
     if (homeInput === '' || awayInput === '') return
@@ -175,7 +176,14 @@ export default function MatchCard({ match, status, userId, bets, users, formatTi
       {/* Locked stage: view all bets */}
       {status === 'locked' && (
         <button
-          onClick={() => setShowAllBets(prev => !prev)}
+          onClick={async () => {
+            const next = !showAllBets
+            setShowAllBets(next)
+            if (next && allBets === null) {
+              const { data } = await supabase.from('bets').select('id, match_id, user_id, bet_home, bet_away').eq('match_id', match.id)
+              setAllBets(data || [])
+            }
+          }}
           className="w-full h-7 mt-2 border border-gray-200 rounded-lg text-xs text-gray-400 bg-transparent"
         >
           {showAllBets ? 'Hide bets ▴' : 'View all players bets ▾'}
@@ -184,9 +192,11 @@ export default function MatchCard({ match, status, userId, bets, users, formatTi
 
       {showAllBets && (
         <div className="mt-2 space-y-1">
-          {users
+          {allBets === null ? (
+            <p className="text-xs text-gray-400 text-center py-1">Loading...</p>
+          ) : users
             .map(user => {
-              const bet = bets.find(b => b.user_id === user.id)
+              const bet = allBets.find(b => b.user_id === user.id)
               const pts = bet ? calcPoints(match, bet.bet_home, bet.bet_away) : null
               return { user, bet, pts }
             })
@@ -197,8 +207,7 @@ export default function MatchCard({ match, status, userId, bets, users, formatTi
               return a.user.alias.localeCompare(b.user.alias)
             })
             .map(({ user, bet, pts }) => (
-              
-              <div key={user.id} 
+              <div key={user.id}
               className="grid grid-cols-3 text-xs text-gray-600 bg-gray-50 rounded px-2 py-1 gap-2">
                 <span className="truncate">{user.alias}</span>
                 <span className="font-medium text-center">

@@ -76,7 +76,7 @@ export default function MatchesPage() {
     return [...teams].slice(0, 4)
   }
 
-  async function fetchStage(stage) {
+  async function fetchStage(stage, currentUserId) {
     if (stageCache.current[stage]) {
       setMatches(stageCache.current[stage].matches)
       setBets(stageCache.current[stage].bets)
@@ -100,8 +100,8 @@ export default function MatchesPage() {
     }
 
     const matchIds = (matchData || []).map(m => m.id)
-    const { data: betData } = matchIds.length > 0
-      ? await supabase.from('bets').select('id, match_id, user_id, bet_home, bet_away').in('match_id', matchIds).limit(10000)
+    const { data: betData } = matchIds.length > 0 && currentUserId
+      ? await supabase.from('bets').select('id, match_id, user_id, bet_home, bet_away').in('match_id', matchIds).eq('user_id', currentUserId)
       : { data: [] }
 
     stageCache.current[stage] = { matches: matchData || [], bets: betData || [] }
@@ -112,7 +112,8 @@ export default function MatchesPage() {
 
   useEffect(() => {
     async function init() {
-      setUserId(localStorage.getItem('userId'))
+      const uid = localStorage.getItem('userId')
+      setUserId(uid)
 
       const [{ data: stageData }, { data: userData }] = await Promise.all([
         supabase.from('stages').select('stage, is_open'),
@@ -124,14 +125,14 @@ export default function MatchesPage() {
       setStageStatus(statusMap)
       setUsers(userData || [])
 
-      await fetchStage('Group')
+      await fetchStage('Group', uid)
     }
     init()
   }, [])
 
   function handleStageChange(stage) {
     setActiveStage(stage)
-    fetchStage(stage)
+    fetchStage(stage, userId)
   }
 
   const groupedMatches = matches.reduce((acc, match) => {
