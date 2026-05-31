@@ -100,9 +100,15 @@ export default function MatchesPage() {
     }
 
     const matchIds = (matchData || []).map(m => m.id)
-    const { data: betData } = matchIds.length > 0
+    const { data: betData, error: betError } = matchIds.length > 0
       ? await supabase.from('bets').select('id, match_id, user_id, bet_home, bet_away').in('match_id', matchIds)
       : { data: [] }
+
+    console.log('[fetchStage] stage:', stage)
+    console.log('[fetchStage] matchIds count:', matchIds.length)
+    console.log('[fetchStage] betData count:', betData?.length ?? 0)
+    console.log('[fetchStage] betError:', betError)
+    console.log('[fetchStage] betData:', betData)
 
     stageCache.current[stage] = { matches: matchData || [], bets: betData || [] }
     setMatches(matchData || [])

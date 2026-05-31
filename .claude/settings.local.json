@@ -14,7 +14,14 @@
       "PowerShell(git add \"app/components/TabBar.js\" \"app/\\(main\\)/chat/page.js\" \"app/globals.css\")",
       "PowerShell(git add \"app/globals.css\")",
       "PowerShell(git add \"app/layout.js\")",
-      "Bash(python -c ' *)"
+      "Bash(python -c ' *)",
+      "PowerShell(Get-ChildItem -Path \"c:\\\\Users\\\\thoma\\\\wc26-bets\" -Directory | ForEach-Object { $_.Name })",
+      "PowerShell(Get-ChildItem -Path \"c:\\\\Users\\\\thoma\\\\wc26-bets\\\\app\" -Recurse | ForEach-Object { $_.FullName } | head -50)",
+      "Bash(node -e \"const { countries } = require\\('countries-list'\\); console.log\\(JSON.stringify\\(Object.entries\\(countries\\).slice\\(0,3\\)\\)\\)\")",
+      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\thoma\\\\wc26-bets\" -Force)",
+      "Bash(Select-Object Name, Attributes)",
+      "PowerShell(Get-ChildItem -Path \"c:\\\\Users\\\\thoma\\\\wc26-bets\\\\app\" -Recurse -Force | Select-Object FullName | ForEach-Object { $_.FullName.replace\\('c:\\\\Users\\\\thoma\\\\wc26-bets\\\\', ''\\) } | Sort-Object)",
+      "Bash(git log *)"
     ]
   }
 }

@@ -39,11 +39,13 @@ export default function MatchCard({ match, status, userId, bets, users, formatTi
   const [homeInput, setHomeInput] = useState(myBet ? String(myBet.bet_home) : '')
   const [awayInput, setAwayInput] = useState(myBet ? String(myBet.bet_away) : '')
   const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState(null)
   const [showAllBets, setShowAllBets] = useState(false)
 
   async function handleSaveBet() {
     if (homeInput === '' || awayInput === '') return
     setSaving(true)
+    setSaveError(null)
 
     const betData = {
       user_id: userId,
@@ -58,7 +60,12 @@ export default function MatchCard({ match, status, userId, bets, users, formatTi
       .select()
       .single()
 
-    if (!error) onBetSaved(data)
+    if (error) {
+      console.error('Bet save failed:', error)
+      setSaveError(error.message || 'Failed to save bet — please try again.')
+    } else {
+      onBetSaved(data)
+    }
     setSaving(false)
   }
 
@@ -138,7 +145,10 @@ export default function MatchCard({ match, status, userId, bets, users, formatTi
           >
             {saving ? 'Saving...' : myBet ? 'Update bet' : 'Place bet'}
           </button>
-          <p className="text-xs text-gray-400 text-center mt-1">Bets are hidden until stage kicks off</p>
+          {saveError && (
+            <p className="text-xs text-red-500 text-center mt-1">{saveError}</p>
+          )}
+          {!saveError && <p className="text-xs text-gray-400 text-center mt-1">Bets are hidden until stage kicks off</p>}
         </>
       )}
 
