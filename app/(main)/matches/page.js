@@ -144,6 +144,9 @@ export default function MatchesPage() {
 
   const sortedGroups = Object.entries(groupedMatches).sort(([a], [b]) => a.localeCompare(b))
   const status = stageStatus[activeStage] || 'open'
+  const totalMatches = matches.length
+  const betsPlaced = bets.length
+  const bettingComplete = totalMatches > 0 && betsPlaced === totalMatches
 
   return (
     <div className="h-dvh flex flex-col" style={{ background: '#f4f5f7' }}>
@@ -173,6 +176,36 @@ export default function MatchesPage() {
           ))}
         </div>
       </div>
+
+      {/* Bet progress banner */}
+      {status === 'open' && !loading && !error && matches.length > 0 && (
+        <div
+          className="flex-shrink-0"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            padding: '8px 12px',
+            background: bettingComplete ? '#e1f5ee' : '#ffffff',
+            borderBottom: bettingComplete ? 'none' : '0.5px solid #e8e8e8',
+          }}
+        >
+          <span style={{ fontSize: 11, color: bettingComplete ? '#0a5c45' : '#888', whiteSpace: 'nowrap' }}>
+            Bets placed
+          </span>
+          <div style={{ flex: 1, height: 5, borderRadius: 3, background: bettingComplete ? '#9FE1CB' : '#e4e4e4' }}>
+            <div style={{
+              width: `${(betsPlaced / totalMatches) * 100}%`,
+              height: '100%',
+              borderRadius: 3,
+              background: bettingComplete ? '#0a5c45' : '#1D9E75',
+            }} />
+          </div>
+          <span style={{ fontSize: 11, fontWeight: 500, color: '#0a5c45', whiteSpace: 'nowrap' }}>
+            {bettingComplete ? `✓ ${totalMatches}/${totalMatches}` : `${betsPlaced}/${totalMatches}`}
+          </span>
+        </div>
+      )}
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto px-3 pt-3" style={{ paddingBottom: 'calc(4rem + env(safe-area-inset-bottom))' }}>
