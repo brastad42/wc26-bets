@@ -28,6 +28,19 @@ function toOsloTime(utcString) {
 export default function BetExport() {
   const [exporting, setExporting] = useState(false)
 
+  async function fetchAllBets() {
+    const PAGE = 1000
+    let all = [], from = 0
+    while (true) {
+      const { data, error } = await supabase.from('bets').select('*').range(from, from + PAGE - 1)
+      if (error) return { data: null, error }
+      all = all.concat(data || [])
+      if (!data || data.length < PAGE) break
+      from += PAGE
+    }
+    return { data: all, error: null }
+  }
+
   async function handleExport() {
     setExporting(true)
 
@@ -35,13 +48,18 @@ export default function BetExport() {
       { data: competitions },
       { data: matches },
       { data: users },
-      { data: bets }
+      { data: bets, error: betsError }
     ] = await Promise.all([
       supabase.from('competitions').select('*'),
       supabase.from('matches').select('*').order('match_time'),
       supabase.from('users').select('*').eq('is_active', true),
-      supabase.from('bets').select('*')
+      fetchAllBets()
     ])
+
+    if (betsError) {
+      setExporting(false)
+      return
+    }
 
     const competition = competitions?.[0]
     const matchMap = Object.fromEntries(matches.map(m => [m.id, m]))

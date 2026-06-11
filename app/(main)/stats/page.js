@@ -11,6 +11,9 @@ function calcPoints(resultHome, resultAway, betHome, betAway) {
 }
 
 function computeStats(users, matches, bets) {
+  const activeUserIds = new Set(users.map(u => u.id))
+  bets = bets.filter(b => activeUserIds.has(b.user_id))
+
   const matchById = Object.fromEntries(matches.map(m => [m.id, m]))
   const finishedMatchIds = new Set(
     matches.filter(m => m.result_home !== null).map(m => m.id)
@@ -240,6 +243,23 @@ export default function StatsPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError]     = useState(null)
 
+  async function fetchAllBets() {
+    const PAGE = 1000
+    let all = []
+    let from = 0
+    while (true) {
+      const { data, error } = await supabase
+        .from('bets')
+        .select('id, match_id, user_id, bet_home, bet_away')
+        .range(from, from + PAGE - 1)
+      if (error) return { data: null, error }
+      all = all.concat(data || [])
+      if (!data || data.length < PAGE) break
+      from += PAGE
+    }
+    return { data: all, error: null }
+  }
+
   async function load() {
     setLoading(true)
     setError(null)
@@ -253,7 +273,7 @@ export default function StatsPage() {
       supabase.from('stages').select('stage, is_open'),
       supabase.from('users').select('id, alias').eq('is_active', true),
       supabase.from('matches').select('id, stage, home_team, away_team, result_home, result_away'),
-      supabase.from('bets').select('id, match_id, user_id, bet_home, bet_away'),
+      fetchAllBets(),
     ])
 
     if (e1 || e2 || e3 || e4) {
@@ -262,10 +282,19 @@ export default function StatsPage() {
       return
     }
 
-    const groupStage = (stageData || []).find(s => s.stage === 'Group')
-    setStatsVisible(groupStage ? !groupStage.is_open : false)
+    const lockedStageNames = new Set(
+      (stageData || []).filter(s => !s.is_open).map(s => s.stage)
+    )
+    const lockedMatches = (matchData || []).filter(m => lockedStageNames.has(m.stage))
+    setStatsVisible(lockedMatches.length > 0)
 
-    const stats = computeStats(userData || [], matchData || [], betData || [])
+    const lockedMatchIds = new Set(lockedMatches.map(m => m.id))
+    const threshold = lockedMatches.length * 0.5
+    const eligibleUsers = (userData || []).filter(u =>
+      (betData || []).filter(b => b.user_id === u.id && lockedMatchIds.has(b.match_id)).length >= threshold
+    )
+
+    const stats = computeStats(eligibleUsers, lockedMatches, betData || [])
     setPlayerStats(stats.playerStats)
     setTeamStats(stats.teamStats)
     setMatchStats(stats.matchStats)
@@ -310,7 +339,7 @@ export default function StatsPage() {
             {/* Section 1 — Player stats */}
             <div className="flex items-center justify-between px-1 mb-2">
               <p style={sectionLabel}>🧑‍🤝‍🧑 Player awards</p>
-              {!statsVisible && <span style={{ fontSize: 10, color: '#aaa' }}>Available after Group stage kickoff</span>}
+              {!statsVisible && <span style={{ fontSize: 10, color: '#aaa' }}>Available once a stage is locked</span>}
             </div>
             <div className="bg-white rounded-2xl overflow-hidden shadow-sm">
               {playerStats.map(({ emoji, title, description, winner, value, match }) => (
@@ -334,7 +363,7 @@ export default function StatsPage() {
             {/* Section 2 — Team stats */}
             <div className="flex items-center justify-between px-1 mt-5 mb-2">
               <p style={sectionLabel}>⚽ Team awards</p>
-              {!statsVisible && <span style={{ fontSize: 10, color: '#aaa' }}>Available after Group stage kickoff</span>}
+              {!statsVisible && <span style={{ fontSize: 10, color: '#aaa' }}>Available once a stage is locked</span>}
             </div>
             <div className="bg-white rounded-2xl overflow-hidden shadow-sm">
               {teamStats.map(({ emoji, title, description, team, value }) => (
@@ -357,7 +386,7 @@ export default function StatsPage() {
             {/* Section 3 — Match stats */}
             <div className="flex items-center justify-between px-1 mt-5 mb-2">
               <p style={sectionLabel}>⚡ Match awards</p>
-              {!statsVisible && <span style={{ fontSize: 10, color: '#aaa' }}>Available after Group stage kickoff</span>}
+              {!statsVisible && <span style={{ fontSize: 10, color: '#aaa' }}>Available once a stage is locked</span>}
             </div>
             <div className="bg-white rounded-2xl overflow-hidden shadow-sm">
               {matchStats.map(({ emoji, title, badge, match, detail }) => (
