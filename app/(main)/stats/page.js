@@ -127,8 +127,8 @@ function computeStats(users, matches, bets) {
     return { team, gap: n > 0 ? totalGap / n : 0, n }
   }).filter(t => t.n > 0)
 
-  const underrated = [...teamGaps].sort((a, b) => b.gap - a.gap)[0]
-  const overrated  = [...teamGaps].sort((a, b) => a.gap - b.gap)[0]
+  const underrated = [...teamGaps].sort((a, b) => b.gap - a.gap).find(t => t.gap > 0) ?? null
+  const overrated  = [...teamGaps].sort((a, b) => a.gap - b.gap).find(t => t.gap < 0) ?? null
 
   // --- Match stats ---
 
