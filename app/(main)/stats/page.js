@@ -67,7 +67,7 @@ function computeStats(users, matches, bets) {
     v: bets.filter(b => {
       if (b.user_id !== u.id || !finishedMatchIds.has(b.match_id)) return false
       const m = matchById[b.match_id]
-      if (calcPoints(m.result_home, m.result_away, b.bet_home, b.bet_away) > 0) return false
+      if (b.bet_home === m.result_home && b.bet_away === m.result_away) return false
       return Math.abs(b.bet_home - m.result_home) + Math.abs(b.bet_away - m.result_away) === 1
     }).length,
   })).sort((a, b) => b.v - a.v)
