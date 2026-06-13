@@ -37,6 +37,7 @@ function computeStats(users, matches, bets) {
   const totalGoals = users.map(u => ({
     user: u,
     v: bets.filter(b => b.user_id === u.id).reduce((s, b) => s + b.bet_home + b.bet_away, 0),
+    n: bets.filter(b => b.user_id === u.id).length,
     hasBets: bets.some(b => b.user_id === u.id),
   }))
   const legendaryOptimist = [...totalGoals].sort((a, b) => b.v - a.v)[0]
@@ -108,15 +109,25 @@ function computeStats(users, matches, bets) {
     .sort((a, b) => b.maxStreak - a.maxStreak || a.firstMaxEnd - b.firstMaxEnd)
   const perfectRun = perfectRunData[0] ?? null
 
-  // WTF — highest total distance from actual result
+  // WTF — highest total goals predicted in a single bet
   let wtf = null
+  for (const b of bets) {
+    const m = matchById[b.match_id]
+    if (!m) continue
+    const total = b.bet_home + b.bet_away
+    if (!wtf || total > wtf.total) wtf = { bet: b, match: m, total }
+  }
+  const wtfUser = wtf ? users.find(u => u.id === wtf.bet.user_id) : null
+
+  // Far Out — highest total distance from actual result
+  let farOut = null
   for (const b of bets) {
     if (!finishedMatchIds.has(b.match_id)) continue
     const m = matchById[b.match_id]
     const dist = Math.abs(b.bet_home - m.result_home) + Math.abs(b.bet_away - m.result_away)
-    if (!wtf || dist > wtf.dist) wtf = { bet: b, match: m, dist }
+    if (!farOut || dist > farOut.dist) farOut = { bet: b, match: m, dist }
   }
-  const wtfUser = wtf ? users.find(u => u.id === wtf.bet.user_id) : null
+  const farOutUser = farOut ? users.find(u => u.id === farOut.bet.user_id) : null
 
   // --- Team stats ---
 
@@ -194,11 +205,17 @@ function computeStats(users, matches, bets) {
     playerStats: [
       legendaryOptimist && {
         emoji: '🚀', title: 'Legendary Optimist', description: 'Predicted the most total goals',
-        winner: legendaryOptimist.user.alias, value: `${legendaryOptimist.v} goals`,
+        winner: legendaryOptimist.user.alias,
+        value: legendaryOptimist.n > 0
+          ? `${legendaryOptimist.v} goals (${(legendaryOptimist.v / legendaryOptimist.n).toFixed(1)} avg.)`
+          : `${legendaryOptimist.v} goals`,
       },
       dukeOfDullness && {
         emoji: '😴', title: 'Duke of Dullness', description: 'Predicted the fewest total goals',
-        winner: dukeOfDullness.user.alias, value: `${dukeOfDullness.v} goals`,
+        winner: dukeOfDullness.user.alias,
+        value: dukeOfDullness.n > 0
+          ? `${dukeOfDullness.v} goals (${(dukeOfDullness.v / dukeOfDullness.n).toFixed(1)} avg.)`
+          : `${dukeOfDullness.v} goals`,
       },
       diplomatOfDraws && {
         emoji: '🤝', title: 'Diplomat of Draws', description: 'Predicted the most draws',
@@ -227,8 +244,14 @@ function computeStats(users, matches, bets) {
       {
         emoji: '🤯', title: 'WTF', description: 'The single wildest bet (so far)',
         winner: wtfUser?.alias ?? null,
-        value: wtf ? `Predicted ${wtf.bet.bet_home}−${wtf.bet.bet_away} · actual ${wtf.match.result_home}−${wtf.match.result_away}` : null,
+        value: wtf ? `Predicted ${wtf.bet.bet_home}−${wtf.bet.bet_away}` : null,
         match: wtf ? fmt(wtf.match.home_team, wtf.match.away_team) : null,
+      },
+      {
+        emoji: '🏹', title: 'Far Out', description: 'The bet farthest off target.',
+        winner: farOutUser?.alias ?? null,
+        value: farOut ? `Predicted ${farOut.bet.bet_home}−${farOut.bet.bet_away} · actual ${farOut.match.result_home}−${farOut.match.result_away}` : null,
+        match: farOut ? fmt(farOut.match.home_team, farOut.match.away_team) : null,
       },
       {
         emoji: '💔', title: 'Unlucky Loser(s)', description: 'Most bets just one goal off the result',
