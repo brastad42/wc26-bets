@@ -109,6 +109,29 @@ function computeStats(users, matches, bets) {
     .sort((a, b) => b.maxStreak - a.maxStreak || a.firstMaxEnd - b.firstMaxEnd)
   const perfectRun = perfectRunData[0] ?? null
 
+  // Losing Streak — longest consecutive run of matches scoring zero points (DNS counts as 0, doesn't break streak)
+  function calcLosingStreak(user) {
+    let maxStreak = 0, firstMaxEnd = Infinity, cur = 0
+    for (let i = 0; i < sortedFinishedMatches.length; i++) {
+      const m = sortedFinishedMatches[i]
+      const bet = bets.find(b => b.user_id === user.id && b.match_id === m.id)
+      const pts = bet ? calcPoints(m.result_home, m.result_away, bet.bet_home, bet.bet_away) : 0
+      if (pts === 0) {
+        cur++
+        if (cur > maxStreak) { maxStreak = cur; firstMaxEnd = i }
+      } else {
+        cur = 0
+      }
+    }
+    return { maxStreak, firstMaxEnd }
+  }
+
+  const losingStreakData = users
+    .map(u => ({ user: u, ...calcLosingStreak(u) }))
+    .filter(s => s.maxStreak > 0)
+    .sort((a, b) => b.maxStreak - a.maxStreak || a.firstMaxEnd - b.firstMaxEnd)
+  const losingStreak = losingStreakData[0] ?? null
+
   // WTF — highest total goals predicted in a single bet
   let wtf = null
   for (const b of bets) {
@@ -240,6 +263,10 @@ function computeStats(users, matches, bets) {
       perfectRun && {
         emoji: '🎯', title: 'Perfect Run', description: 'Longest streak of exact scores in a row',
         winner: perfectRun.user.alias, value: `${perfectRun.maxStreak} in a row`,
+      },
+      losingStreak && {
+        emoji: '🌧️', title: 'Losing Streak', description: 'Longest run of matches scoring zero points',
+        winner: losingStreak.user.alias, value: `${losingStreak.maxStreak} in a row`,
       },
       {
         emoji: '🤯', title: 'WTF', description: 'The single wildest bet (so far)',
