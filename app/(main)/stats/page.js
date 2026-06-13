@@ -61,15 +61,17 @@ function computeStats(users, matches, bets) {
   const maverick = [...majorityAgreement].sort((a, b) => a.pct - b.pct)[0]
   const sheep    = [...majorityAgreement].sort((a, b) => b.pct - a.pct)[0]
 
-  const unluckyLoser = users.map(u => ({
+  const unluckyLoserAll = users.map(u => ({
     user: u,
     v: bets.filter(b => {
       if (b.user_id !== u.id || !finishedMatchIds.has(b.match_id)) return false
       const m = matchById[b.match_id]
-      if (Math.sign(b.bet_home - b.bet_away) === Math.sign(m.result_home - m.result_away)) return false
-      return Math.abs(b.bet_home - m.result_home) === 1 && Math.abs(b.bet_away - m.result_away) === 1
+      if (calcPoints(m.result_home, m.result_away, b.bet_home, b.bet_away) > 0) return false
+      return Math.abs(b.bet_home - m.result_home) + Math.abs(b.bet_away - m.result_away) === 1
     }).length,
-  })).sort((a, b) => b.v - a.v)[0]
+  })).sort((a, b) => b.v - a.v)
+  const unluckyLoser = unluckyLoserAll[0]
+  const unluckyLoserTied = unluckyLoser ? unluckyLoserAll.filter(u => u.v === unluckyLoser.v) : []
 
   // WTF — highest total distance from actual result
   let wtf = null
@@ -179,8 +181,8 @@ function computeStats(users, matches, bets) {
       },
       {
         emoji: '💔', title: 'Unlucky Loser', description: 'Most bets just one goal off the result',
-        winner: finishedMatchIds.size > 0 ? unluckyLoser?.user.alias ?? null : null,
-        value:  finishedMatchIds.size > 0 ? `${unluckyLoser?.v} times` : null,
+        winners: finishedMatchIds.size > 0 ? unluckyLoserTied.map(u => u.user.alias) : null,
+        value:   finishedMatchIds.size > 0 ? `${unluckyLoser?.v} times` : null,
       },
       {
         emoji: '🤯', title: 'WTF', description: 'The single wildest bet',
@@ -342,16 +344,21 @@ export default function StatsPage() {
               {!statsVisible && <span style={{ fontSize: 10, color: '#aaa' }}>Available once a stage is locked</span>}
             </div>
             <div className="bg-white rounded-2xl overflow-hidden shadow-sm">
-              {playerStats.map(({ emoji, title, description, winner, value, match }) => (
+              {playerStats.map(({ emoji, title, description, winner, winners, value, match }) => (
                 <div key={title} className="flex items-start gap-3 px-4 py-3 border-b border-gray-50 last:border-b-0">
                   <span style={{ fontSize: 24, lineHeight: 1 }}>{emoji}</span>
                   <div className="flex-1 min-w-0">
                     <p style={{ fontSize: 13, fontWeight: 500, color: '#0a5c45' }}>{title}</p>
                     <p style={{ fontSize: 11, color: '#666' }}>{description}</p>
                   </div>
-                  {statsVisible && winner && (
+                  {statsVisible && (winners?.length || winner) && (
                     <div className="shrink-0 flex flex-col items-end">
-                      <span style={{ fontSize: 13, fontWeight: 500, color: '#0a5c45' }}>{winner}</span>
+                      {winners
+                        ? winners.map(name => (
+                            <span key={name} style={{ fontSize: 13, fontWeight: 500, color: '#0a5c45' }}>{name}</span>
+                          ))
+                        : <span style={{ fontSize: 13, fontWeight: 500, color: '#0a5c45' }}>{winner}</span>
+                      }
                       <span style={{ fontSize: 11, fontWeight: 500, color: '#666' }}>{value}</span>
                       {match && <span style={{ fontSize: 11, color: '#666' }}>{match}</span>}
                     </div>

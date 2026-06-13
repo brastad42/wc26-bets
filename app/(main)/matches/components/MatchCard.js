@@ -34,6 +34,26 @@ function calcPoints(match, betHome, betAway) {
   return 0
 }
 
+function getMostPopularBet(bets) {
+  if (!bets || bets.length === 0) return { type: 'none' }
+  const counts = {}
+  for (const bet of bets) {
+    const key = `${bet.bet_home}-${bet.bet_away}`
+    counts[key] = (counts[key] || 0) + 1
+  }
+  const maxCount = Math.max(...Object.values(counts))
+  const winners = Object.entries(counts).filter(([, c]) => c === maxCount)
+  if (winners.length === 1) {
+    const [h, a] = winners[0][0].split('-')
+    return { type: 'single', result: `${h} – ${a}`, count: maxCount }
+  }
+  if (winners.length === 2) {
+    const results = winners.map(([key]) => { const [h, a] = key.split('-'); return `${h} – ${a}` })
+    return { type: 'tie', results, count: maxCount }
+  }
+  return { type: 'none' }
+}
+
 export default function MatchCard({ match, status, userId, bets, users, formatTime, onBetSaved }) {
   const myBet = bets.find(b => b.user_id === userId)
   const [homeInput, setHomeInput] = useState(myBet ? String(myBet.bet_home) : '')
@@ -71,6 +91,7 @@ export default function MatchCard({ match, status, userId, bets, users, formatTi
   }
 
   const myPoints = myBet ? calcPoints(match, myBet.bet_home, myBet.bet_away) : null
+  const popularBet = allBets ? getMostPopularBet(allBets) : null
 
   return (
     <div className="bg-white rounded-xl p-3 mb-2" style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.08)' }}>
@@ -194,7 +215,18 @@ export default function MatchCard({ match, status, userId, bets, users, formatTi
         <div className="mt-2 space-y-1">
           {allBets === null ? (
             <p className="text-xs text-gray-400 text-center py-1">Loading...</p>
-          ) : users
+          ) : (
+            <>
+              {popularBet && allBets.length > 0 && popularBet.type !== 'none' && (
+                <div className="grid grid-cols-3 text-xs gap-2 px-2 py-1 rounded-lg mb-1" style={{ background: '#e1f5ee', borderBottom: '0.5px solid #c8ece0' }}>
+                  <span style={{ fontWeight: 500, color: '#0a5c45' }}>Most popular bet</span>
+                  <span className="font-medium text-center" style={{ color: '#111' }}>
+                    {popularBet.type === 'single' ? popularBet.result : `${popularBet.results[0]} and ${popularBet.results[1]}`}
+                  </span>
+                  <span className="text-right" style={{ color: '#555' }}>{popularBet.count} players</span>
+                </div>
+              )}
+              {users
             .map(user => {
               const bet = allBets.find(b => b.user_id === user.id)
               const pts = bet ? calcPoints(match, bet.bet_home, bet.bet_away) : null
@@ -220,8 +252,9 @@ export default function MatchCard({ match, status, userId, bets, users, formatTi
                   {pts !== null ? `${pts} pts` : '0 pts'}
                 </span>
               </div>
-            ))
-          }
+            ))}
+            </>
+          )}
         </div>
       )}
 
