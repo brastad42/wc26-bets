@@ -6,6 +6,33 @@ import { supabase } from '@/lib/supabase'
 import LogoutButton from '@/app/components/LogoutButton'
 
 export default function LeaderboardPage() {
+  const [nonce, setNonce] = useState(0)
+  return (
+    <div className="h-dvh flex flex-col" style={{ background: '#f4f5f7' }}>
+      <div className="flex-shrink-0" style={{ background: '#0a5c45' }}>
+        <div className="flex items-center justify-between px-4 pt-4 pb-3">
+          <div className="flex items-center gap-3">
+            <span className="text-2xl leading-none">🏆</span>
+            <h1 className="text-xl font-medium text-white tracking-tight">Leaderboard</h1>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setNonce(n => n + 1)}
+              className="text-xs px-3 py-1 rounded-full"
+              style={{ color: 'rgba(255,255,255,0.75)', border: '0.5px solid rgba(255,255,255,0.3)' }}
+            >
+              ↻ Refresh
+            </button>
+            <LogoutButton />
+          </div>
+        </div>
+      </div>
+      <LeaderboardContent key={nonce} />
+    </div>
+  )
+}
+
+function LeaderboardContent() {
   const [leaderboard, setLeaderboard] = useState([])
   const [userId] = useState(() => typeof window !== 'undefined' ? localStorage.getItem('userId') : null)
   const [loading, setLoading] = useState(true)
@@ -28,34 +55,10 @@ export default function LeaderboardPage() {
   }
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchLeaderboard()
   }, [])
 
   return (
-    <div className="h-dvh flex flex-col" style={{ background: '#f4f5f7' }}>
-
-      {/* Header */}
-      <div className="flex-shrink-0" style={{ background: '#0a5c45' }}>
-        <div className="flex items-center justify-between px-4 pt-4 pb-3">
-          <div className="flex items-center gap-3">
-            <span className="text-2xl leading-none">🏆</span>
-            <h1 className="text-xl font-medium text-white tracking-tight">Leaderboard</h1>
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => { setLoading(true); setError(null); fetchLeaderboard() }}
-              className="text-xs px-3 py-1 rounded-full"
-              style={{ color: 'rgba(255,255,255,0.75)', border: '0.5px solid rgba(255,255,255,0.3)' }}
-            >
-              ↻ Refresh
-            </button>
-            <LogoutButton />
-          </div>
-        </div>
-      </div>
-
-      {/* Table */}
       <div className="flex-1 overflow-y-auto px-3 pt-3" style={{ paddingBottom: 'calc(4rem + env(safe-area-inset-bottom))' }}>
         {loading ? (
           <p className="text-sm text-gray-400 text-center mt-8">Loading...</p>
@@ -135,7 +138,5 @@ export default function LeaderboardPage() {
           </div>
         )}
       </div>
-
-    </div>
   )
 }
