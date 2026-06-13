@@ -73,6 +73,41 @@ function computeStats(users, matches, bets) {
   const unluckyLoser = unluckyLoserAll[0]
   const unluckyLoserTied = unluckyLoser ? unluckyLoserAll.filter(u => u.v === unluckyLoser.v) : []
 
+  // On Fire — longest streak of correct outcomes in a row
+  // Perfect Run — longest streak of exact scores in a row
+  const sortedFinishedMatches = matches
+    .filter(m => m.result_home !== null)
+    .slice()
+    .sort((a, b) => new Date(a.match_time) - new Date(b.match_time))
+
+  function calcStreak(user, isHit) {
+    let maxStreak = 0, firstMaxEnd = Infinity, cur = 0
+    for (let i = 0; i < sortedFinishedMatches.length; i++) {
+      const m = sortedFinishedMatches[i]
+      const bet = bets.find(b => b.user_id === user.id && b.match_id === m.id)
+      if (!bet) { cur = 0; continue }
+      if (isHit(m, bet)) {
+        cur++
+        if (cur > maxStreak) { maxStreak = cur; firstMaxEnd = i }
+      } else {
+        cur = 0
+      }
+    }
+    return { maxStreak, firstMaxEnd }
+  }
+
+  const onFireData = users
+    .map(u => ({ user: u, ...calcStreak(u, (m, b) => Math.sign(b.bet_home - b.bet_away) === Math.sign(m.result_home - m.result_away)) }))
+    .filter(s => s.maxStreak > 0)
+    .sort((a, b) => b.maxStreak - a.maxStreak || a.firstMaxEnd - b.firstMaxEnd)
+  const onFire = onFireData[0] ?? null
+
+  const perfectRunData = users
+    .map(u => ({ user: u, ...calcStreak(u, (m, b) => b.bet_home === m.result_home && b.bet_away === m.result_away) }))
+    .filter(s => s.maxStreak > 0)
+    .sort((a, b) => b.maxStreak - a.maxStreak || a.firstMaxEnd - b.firstMaxEnd)
+  const perfectRun = perfectRunData[0] ?? null
+
   // WTF — highest total distance from actual result
   let wtf = null
   for (const b of bets) {
@@ -106,9 +141,10 @@ function computeStats(users, matches, bets) {
   const favourite     = [...winRates].sort((a, b) => b.rate - a.rate)[0]
   const nobodysDarling = [...winRates].sort((a, b) => a.rate - b.rate)[0]
 
-  // Underrated/Overrated — gap between actual avg pts and expected avg pts
-  // Expected = avg pts all players would have earned if majority prediction had been the result
-  // Actual   = avg pts actually earned
+  // Underrated/Overrated — gap between actual outcome and how players backed the team
+  // backRate = fraction of players who predicted team to win OR draw (didn't predict team to lose)
+  // actualScore = 1 (won), 0.5 (draw), 0 (lost)
+  // gap = actualScore - backRate (positive = outperformed predictions, negative = underperformed)
   const teamGaps = teamNames.map(team => {
     let totalGap = 0, n = 0
     for (const m of matches) {
@@ -118,12 +154,13 @@ function computeStats(users, matches, bets) {
       if (!isHome && !isAway) continue
       const mb = bets.filter(b => b.match_id === m.id)
       if (!mb.length) continue
-      const majKey = matchMajority[m.id]
-      if (!majKey) continue
-      const [mh, ma] = majKey.split('-').map(Number)
-      const expected = mb.reduce((s, b) => s + calcPoints(mh, ma, b.bet_home, b.bet_away), 0) / mb.length
-      const actual   = mb.reduce((s, b) => s + calcPoints(m.result_home, m.result_away, b.bet_home, b.bet_away), 0) / mb.length
-      totalGap += actual - expected
+      const backed = mb.filter(b => isHome ? b.bet_home >= b.bet_away : b.bet_away >= b.bet_home).length
+      const backRate = backed / mb.length
+      const resultSign = isHome
+        ? Math.sign(m.result_home - m.result_away)
+        : Math.sign(m.result_away - m.result_home)
+      const actualScore = resultSign > 0 ? 1 : resultSign === 0 ? 0.5 : 0
+      totalGap += actualScore - backRate
       n++
     }
     return { team, gap: n > 0 ? totalGap / n : 0, n }
@@ -179,16 +216,24 @@ function computeStats(users, matches, bets) {
         emoji: '🐑', title: 'The Sheep', description: 'Most often agreed with the majority',
         winner: sheep.user.alias, value: `${sheep.pct}% match`,
       },
-      {
-        emoji: '💔', title: 'Unlucky Loser', description: 'Most bets just one goal off the result',
-        winners: finishedMatchIds.size > 0 ? unluckyLoserTied.map(u => u.user.alias) : null,
-        value:   finishedMatchIds.size > 0 ? `${unluckyLoser?.v} times` : null,
+      onFire && {
+        emoji: '🔥', title: 'On Fire', description: 'Longest streak of correct outcomes in a row',
+        winner: onFire.user.alias, value: `${onFire.maxStreak} in a row`,
+      },
+      perfectRun && {
+        emoji: '🎯', title: 'Perfect Run', description: 'Longest streak of exact scores in a row',
+        winner: perfectRun.user.alias, value: `${perfectRun.maxStreak} in a row`,
       },
       {
-        emoji: '🤯', title: 'WTF', description: 'The single wildest bet',
+        emoji: '🤯', title: 'WTF', description: 'The single wildest bet (so far)',
         winner: wtfUser?.alias ?? null,
         value: wtf ? `Predicted ${wtf.bet.bet_home}−${wtf.bet.bet_away} · actual ${wtf.match.result_home}−${wtf.match.result_away}` : null,
         match: wtf ? fmt(wtf.match.home_team, wtf.match.away_team) : null,
+      },
+      {
+        emoji: '💔', title: 'Unlucky Loser(s)', description: 'Most bets just one goal off the result',
+        winners: finishedMatchIds.size > 0 ? unluckyLoserTied.map(u => u.user.alias) : null,
+        value:   finishedMatchIds.size > 0 ? `${unluckyLoser?.v} times` : null,
       },
     ].filter(Boolean),
 
@@ -204,12 +249,12 @@ function computeStats(users, matches, bets) {
       {
         emoji: '💎', title: 'The Underrated', description: 'Outperformed what players predicted',
         team:  underrated?.team ?? null,
-        value: underrated ? `${underrated.gap >= 0 ? '+' : ''}${underrated.gap.toFixed(1)} pts` : null,
+        value: underrated ? `+${Math.round(underrated.gap * 100)}%` : null,
       },
       {
         emoji: '📉', title: 'The Overrated', description: 'Backed heavily — failed to deliver',
         team:  overrated?.team ?? null,
-        value: overrated ? `${overrated.gap.toFixed(1)} pts` : null,
+        value: overrated ? `${Math.round(overrated.gap * 100)}%` : null,
       },
     ].filter(Boolean),
 
@@ -274,7 +319,7 @@ export default function StatsPage() {
     ] = await Promise.all([
       supabase.from('stages').select('stage, is_open'),
       supabase.from('users').select('id, alias').eq('is_active', true),
-      supabase.from('matches').select('id, stage, home_team, away_team, result_home, result_away'),
+      supabase.from('matches').select('id, stage, home_team, away_team, result_home, result_away, match_time'),
       fetchAllBets(),
     ])
 
