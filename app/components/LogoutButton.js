@@ -7,6 +7,7 @@ export default function LogoutButton() {
 
   function handleLogout() {
     localStorage.removeItem('userId')
+    localStorage.removeItem('matchesSortMode')
     localStorage.removeItem('competitionId')
     router.push('/join')
   }

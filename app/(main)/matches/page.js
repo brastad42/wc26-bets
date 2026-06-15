@@ -44,6 +44,7 @@ export default function MatchesPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const stageCache = useRef({})
+
   const [collapsedGroups, setCollapsedGroups] = useState(() => {
     try {
       const saved = sessionStorage.getItem('collapsedGroups')
@@ -51,6 +52,10 @@ export default function MatchesPage() {
     } catch {
       return {}
     }
+  })
+
+  const [sortMode, setSortMode] = useState(() => {
+    try { return localStorage.getItem('matchesSortMode') || 'group' } catch { return 'group' }
   })
 
   function toggleGroup(group) {
@@ -64,6 +69,22 @@ export default function MatchesPage() {
   function isCollapsed(group) {
     if (activeStage !== 'Group') return false
     return collapsedGroups[group] === undefined ? true : collapsedGroups[group]
+  }
+
+  function handleSortMode(mode) {
+    setSortMode(mode)
+    try { localStorage.setItem('matchesSortMode', mode) } catch {}
+  }
+
+  function handleBetSaved(newBet) {
+    setBets(prev => {
+      const exists = prev.find(b => b.id === newBet.id)
+      const updated = exists
+        ? prev.map(b => b.id === newBet.id ? newBet : b)
+        : [...prev, newBet]
+      if (stageCache.current[activeStage]) stageCache.current[activeStage].bets = updated
+      return updated
+    })
   }
 
   function getGroupTeams(group) {
@@ -135,14 +156,29 @@ export default function MatchesPage() {
     fetchStage(stage, userId)
   }
 
+  // Group view: matches grouped by match_group, sorted alphabetically
   const groupedMatches = matches.reduce((acc, match) => {
     const key = match.match_group || 'Matches'
     if (!acc[key]) acc[key] = []
     acc[key].push(match)
     return acc
   }, {})
-
   const sortedGroups = Object.entries(groupedMatches).sort(([a], [b]) => a.localeCompare(b))
+
+  // Date view: matches grouped by day in Oslo time (already sorted chronologically by query)
+  const matchesByDate = (() => {
+    const groups = []
+    const seen = {}
+    for (const match of matches) {
+      const key = new Date(match.match_time).toLocaleDateString('en-GB', {
+        weekday: 'short', day: 'numeric', month: 'short', timeZone: 'Europe/Oslo'
+      })
+      if (!seen[key]) { seen[key] = true; groups.push({ date: key, dayMatches: [] }) }
+      groups[groups.length - 1].dayMatches.push(match)
+    }
+    return groups
+  })()
+
   const status = stageStatus[activeStage] || 'open'
   const totalMatches = matches.length
   const betsPlaced = bets.length
@@ -175,6 +211,35 @@ export default function MatchesPage() {
             </button>
           ))}
         </div>
+
+        {/* Sort toggle — only shown for Group stage */}
+        {activeStage === 'Group' && (
+          <div className="flex items-center gap-2 px-3 pb-3">
+            <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', whiteSpace: 'nowrap' }}>
+              Sort by:
+            </span>
+            <div style={{ display: 'flex', background: 'rgba(255,255,255,0.12)', borderRadius: 8, padding: 2, gap: 2 }}>
+              {[['group', '⊞ Groups'], ['date', '↕ Date']].map(([mode, label]) => (
+                <button
+                  key={mode}
+                  onClick={() => handleSortMode(mode)}
+                  style={{
+                    padding: '4px 10px',
+                    borderRadius: 6,
+                    fontSize: 11,
+                    fontWeight: 500,
+                    border: 'none',
+                    cursor: 'pointer',
+                    background: sortMode === mode ? '#fff' : 'transparent',
+                    color: sortMode === mode ? '#0a5c45' : 'rgba(255,255,255,0.6)',
+                  }}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Bet progress banner */}
@@ -217,7 +282,9 @@ export default function MatchesPage() {
           <p className="text-sm text-gray-400 text-center mt-8">Loading...</p>
         ) : matches.length === 0 ? (
           <p className="text-sm text-gray-400 text-center mt-8">No matches yet for this stage.</p>
-        ) : (
+        ) : sortMode === 'group' || activeStage !== 'Group' ? (
+
+          /* ── GROUP VIEW ── */
           sortedGroups.map(([group, groupMatches]) => (
             <div key={group}>
               {activeStage === 'Group' && (
@@ -253,22 +320,47 @@ export default function MatchesPage() {
                   bets={bets.filter(b => b.match_id === match.id)}
                   users={users}
                   formatTime={formatTime}
-                  onBetSaved={(newBet) => {
-                    setBets(prev => {
-                      const exists = prev.find(b => b.id === newBet.id)
-                      const updated = exists
-                        ? prev.map(b => b.id === newBet.id ? newBet : b)
-                        : [...prev, newBet]
-                      if (stageCache.current[activeStage]) {
-                        stageCache.current[activeStage].bets = updated
-                      }
-                      return updated
-                    })
-                  }}
+                  onBetSaved={handleBetSaved}
                 />
               ))}
             </div>
           ))
+
+        ) : (
+
+          /* ── DATE VIEW ── */
+          matchesByDate.map(({ date, dayMatches }) => (
+            <div key={date}>
+              <div className="flex items-center gap-2 mt-4 mb-2">
+                <span style={{ fontSize: 11, fontWeight: 600, color: '#555', whiteSpace: 'nowrap' }}>
+                  {date}
+                </span>
+                <div style={{ flex: 1, height: '0.5px', background: '#ddd' }} />
+                <span style={{ fontSize: 10, color: '#bbb', whiteSpace: 'nowrap' }}>
+                  {dayMatches.length} {dayMatches.length === 1 ? 'match' : 'matches'}
+                </span>
+              </div>
+              {dayMatches.map(match => (
+                <div key={match.id}>
+                  {match.match_group && (
+                    <div style={{ fontSize: 10, color: '#bbb', marginBottom: 3, paddingLeft: 2 }}>
+                      Group {match.match_group}
+                    </div>
+                  )}
+                  <MatchCard
+                    match={match}
+                    status={status}
+                    userId={userId}
+                    bets={bets.filter(b => b.match_id === match.id)}
+                    users={users}
+                    formatTime={formatTime}
+                    onBetSaved={handleBetSaved}
+                  />
+                </div>
+              ))}
+            </div>
+          ))
+
         )}
       </div>
 
