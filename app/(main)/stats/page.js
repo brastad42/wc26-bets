@@ -207,19 +207,30 @@ function computeStats(users, matches, bets) {
 
   let leastConsensus = null, maxUnique = -1
   let mostConsensus  = null, maxShare  = -1
+  let mostSurprising = null, minCorrectShare = 2
 
   for (const m of matches) {
     const mb = bets.filter(b => b.match_id === m.id)
     if (mb.length < 3) continue
     const counts = {}
+    const outcomeCounts = {}
     for (const b of mb) {
       const k = `${b.bet_home}-${b.bet_away}`
       counts[k] = (counts[k] || 0) + 1
+      const outcome = b.bet_home > b.bet_away ? 'home' : b.bet_home < b.bet_away ? 'away' : 'draw'
+      outcomeCounts[outcome] = (outcomeCounts[outcome] || 0) + 1
     }
     const unique   = Object.keys(counts).length
-    const topShare = Math.max(...Object.values(counts)) / mb.length
+    const topOutcome = Object.entries(outcomeCounts).sort((a, b) => b[1] - a[1])[0][0]
+    const topShare = outcomeCounts[topOutcome] / mb.length
     if (unique   > maxUnique) { maxUnique = unique;   leastConsensus = { match: m, unique } }
-    if (topShare > maxShare)  { maxShare  = topShare; mostConsensus  = { match: m, share: topShare } }
+    if (topShare > maxShare)  { maxShare  = topShare; mostConsensus  = { match: m, share: topShare, outcome: topOutcome } }
+
+    if (m.result_home != null && m.result_away != null) {
+      const actual = m.result_home > m.result_away ? 'home' : m.result_home < m.result_away ? 'away' : 'draw'
+      const correctShare = (outcomeCounts[actual] || 0) / mb.length
+      if (correctShare < minCorrectShare) { minCorrectShare = correctShare; mostSurprising = { match: m, share: correctShare } }
+    }
   }
 
   const fmt = (team1, team2) => `${team1} vs ${team2}`
@@ -317,7 +328,12 @@ function computeStats(users, matches, bets) {
       {
         emoji: '😊', title: 'Most Consensus', detail: 'Everyone saw this one coming',
         match: mostConsensus ? fmt(mostConsensus.match.home_team, mostConsensus.match.away_team) : null,
-        badge: mostConsensus ? `${Math.round(mostConsensus.share * 100)}% agreed` : null,
+        badge: mostConsensus ? `${Math.round(mostConsensus.share * 100)}% agreed on ${mostConsensus.outcome === 'home' ? mostConsensus.match.home_team : mostConsensus.outcome === 'away' ? mostConsensus.match.away_team : 'a draw'}` : null,
+      },
+      mostSurprising && {
+        emoji: '😱', title: 'Most Surprising', detail: 'Nobody saw this one coming',
+        match: fmt(mostSurprising.match.home_team, mostSurprising.match.away_team),
+        badge: `${Math.round(mostSurprising.share * 100)}% saw it coming`,
       },
     ].filter(Boolean),
   }
