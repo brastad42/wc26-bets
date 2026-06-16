@@ -229,7 +229,7 @@ function computeStats(users, matches, bets) {
     if (m.result_home != null && m.result_away != null) {
       const actual = m.result_home > m.result_away ? 'home' : m.result_home < m.result_away ? 'away' : 'draw'
       const correctShare = (outcomeCounts[actual] || 0) / mb.length
-      if (correctShare < minCorrectShare) { minCorrectShare = correctShare; mostSurprising = { match: m, share: correctShare } }
+      if (correctShare < minCorrectShare) { minCorrectShare = correctShare; mostSurprising = { match: m, share: correctShare, result: `${m.result_home}–${m.result_away}` } }
     }
   }
 
@@ -333,6 +333,7 @@ function computeStats(users, matches, bets) {
       mostSurprising && {
         emoji: '😱', title: 'Most Surprising', detail: 'Nobody saw this one coming',
         match: fmt(mostSurprising.match.home_team, mostSurprising.match.away_team),
+        result: mostSurprising.result,
         badge: `${Math.round(mostSurprising.share * 100)}% saw it coming`,
       },
     ].filter(Boolean),
@@ -511,7 +512,7 @@ function StatsContent() {
               {!statsVisible && <span style={{ fontSize: 10, color: '#aaa' }}>Available once a stage is locked</span>}
             </div>
             <div className="bg-white rounded-2xl overflow-hidden shadow-sm">
-              {matchStats.map(({ emoji, title, badge, match, detail }) => (
+              {matchStats.map(({ emoji, title, badge, match, result, detail }) => (
                 <div key={title} className="flex items-start gap-3 px-4 py-3 border-b border-gray-50 last:border-b-0">
                   <span style={{ fontSize: 24, lineHeight: 1 }}>{emoji}</span>
                   <div className="flex-1 min-w-0">
@@ -521,6 +522,7 @@ function StatsContent() {
                   {statsVisible && match && (
                     <div className="shrink-0 flex flex-col items-end">
                       <span style={{ fontSize: 13, fontWeight: 500, color: '#0a5c45' }}>{match}</span>
+                      {result && <span style={{ fontSize: 11, fontWeight: 500, color: '#666' }}>{result}</span>}
                       <span style={{ fontSize: 11, fontWeight: 500, color: '#666' }}>{badge}</span>
                     </div>
                   )}
