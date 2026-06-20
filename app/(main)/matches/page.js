@@ -297,21 +297,26 @@ export default function MatchesPage() {
                   <span className="cursor-pointer text-xs bg-gray-200 text-gray-500 px-3 py-1 rounded-full font-medium inline-flex items-center gap-2">
                     {isCollapsed(group) ? `Group ${group} ▸` : `Group ${group} ▾`}
                     {isCollapsed(group) && (
-                      <span className="flex items-center gap-0.5">
-                        {getGroupTeams(group).map(team => {
-                          const code = FLAGS[team]
-                          if (!code) return null
-                          return (
-                            <img
-                              key={team}
-                              src={`https://flagcdn.com/w40/${code}.png`}
-                              alt={team}
-                              className="rounded-sm"
-                              style={{ width: '1rem', height: 'auto' }}
-                            />
-                          )
-                        })}
-                      </span>
+                      <>
+                        <span className="flex items-center gap-0.5">
+                          {getGroupTeams(group).map(team => {
+                            const code = FLAGS[team]
+                            if (!code) return null
+                            return (
+                              <img
+                                key={team}
+                                src={`https://flagcdn.com/w40/${code}.png`}
+                                alt={team}
+                                className="rounded-sm"
+                                style={{ width: '1rem', height: 'auto' }}
+                              />
+                            )
+                          })}
+                        </span>
+                        <span style={{ minWidth: 26, textAlign: 'right' }}>
+                          {groupMatches.filter(m => m.result_home !== null).length}/{groupMatches.length}
+                        </span>
+                      </>
                     )}
                   </span>
                 </div>
