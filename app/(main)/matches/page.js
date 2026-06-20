@@ -308,7 +308,7 @@ export default function MatchesPage() {
                                 src={`https://flagcdn.com/w40/${code}.png`}
                                 alt={team}
                                 className="rounded-sm"
-                                style={{ width: '1rem', height: 'auto' }}
+                                style={{ width: '1rem', height: '11px', objectFit: 'cover' }}
                               />
                             )
                           })}

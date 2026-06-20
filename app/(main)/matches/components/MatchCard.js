@@ -111,7 +111,7 @@ export default function MatchCard({ match, status, userId, bets, users, formatTi
       <div className="flex items-center justify-between gap-2 mb-3">
         <div className="flex items-center gap-1.5 flex-1 min-w-0">
           {getFlag(match.home_team) && (
-            <Image src={getFlag(match.home_team)} alt={match.home_team} width={24} height={16} className="flex-shrink-0 rounded-sm" style={{ width: '24px', height: 'auto' }} />
+            <Image src={getFlag(match.home_team)} alt={match.home_team} width={24} height={16} className="flex-shrink-0 rounded-sm" style={{ width: '24px', height: '16px', objectFit: 'cover' }} />
           )}
           <span className="text-sm font-medium text-gray-900 truncate">{match.home_team}</span>
         </div>
@@ -151,7 +151,7 @@ export default function MatchCard({ match, status, userId, bets, users, formatTi
         <div className="flex items-center justify-end gap-1.5 flex-1 min-w-0">
           <span className="text-sm font-medium text-gray-900 truncate text-right">{match.away_team}</span>
           {getFlag(match.away_team) && (
-            <Image src={getFlag(match.away_team)} alt={match.away_team} width={24} height={16} className="flex-shrink-0 rounded-sm" style={{ width: '24px', height: 'auto' }} />
+            <Image src={getFlag(match.away_team)} alt={match.away_team} width={24} height={16} className="flex-shrink-0 rounded-sm" style={{ width: '24px', height: '16px', objectFit: 'cover' }} />
           )}
         </div>
       </div>
