@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import MatchCard from './components/MatchCard'
+import GroupStandings from './components/GroupStandings'
 import LogoutButton from '@/app/components/LogoutButton'
 
 const STAGES = ['Group', 'R32', 'R16', 'QF', 'SF', 'Final']
@@ -219,7 +220,7 @@ export default function MatchesPage() {
               Sort by:
             </span>
             <div style={{ display: 'flex', background: 'rgba(255,255,255,0.12)', borderRadius: 8, padding: 2, gap: 2 }}>
-              {[['group', '⊞ Groups'], ['date', '↕ Date']].map(([mode, label]) => (
+              {[['group', '⊞ Groups'], ['date', '↕ Date'], ['tables', '≡ Tables']].map(([mode, label]) => (
                 <button
                   key={mode}
                   onClick={() => handleSortMode(mode)}
@@ -243,7 +244,7 @@ export default function MatchesPage() {
       </div>
 
       {/* Bet progress banner */}
-      {status === 'open' && !loading && !error && matches.length > 0 && (
+      {status === 'open' && !loading && !error && matches.length > 0 && sortMode !== 'tables' && (
         <div
           className="flex-shrink-0"
           style={{
@@ -282,6 +283,10 @@ export default function MatchesPage() {
           <p className="text-sm text-gray-400 text-center mt-8">Loading...</p>
         ) : matches.length === 0 ? (
           <p className="text-sm text-gray-400 text-center mt-8">No matches yet for this stage.</p>
+        ) : sortMode === 'tables' && activeStage === 'Group' ? (
+
+          <GroupStandings matches={matches} />
+
         ) : sortMode === 'group' || activeStage !== 'Group' ? (
 
           /* ── GROUP VIEW ── */
