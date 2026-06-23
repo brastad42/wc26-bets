@@ -45,6 +45,7 @@ export default function MatchesPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const stageCache = useRef({})
+  const scrollContainerRef = useRef(null)
 
   const [collapsedGroups, setCollapsedGroups] = useState(() => {
     try {
@@ -156,6 +157,23 @@ export default function MatchesPage() {
     setActiveStage(stage)
     fetchStage(stage, userId)
   }
+
+  useEffect(() => {
+    if (sortMode !== 'date' || loading || matches.length === 0) return
+    const todayKey = new Date().toLocaleDateString('en-GB', {
+      weekday: 'short', day: 'numeric', month: 'short', timeZone: 'Europe/Oslo'
+    })
+    const now = new Date()
+    const target =
+      matchesByDate.find(g => g.date === todayKey) ??
+      matchesByDate.find(g => new Date(g.dayMatches[g.dayMatches.length - 1].match_time) >= now) ??
+      matchesByDate[matchesByDate.length - 1]
+    if (!target) return
+    setTimeout(() => {
+      const el = scrollContainerRef.current?.querySelector(`[data-date="${target.date}"]`)
+      el?.scrollIntoView({ block: 'start', behavior: 'instant' })
+    }, 50)
+  }, [sortMode, loading, matches])
 
   // Group view: matches grouped by match_group, sorted alphabetically
   const groupedMatches = matches.reduce((acc, match) => {
@@ -274,7 +292,7 @@ export default function MatchesPage() {
       )}
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto px-3 pt-3" style={{ paddingBottom: 'calc(4rem + env(safe-area-inset-bottom))' }}>
+      <div ref={scrollContainerRef} className="flex-1 overflow-y-auto px-3 pt-3" style={{ paddingBottom: 'calc(4rem + env(safe-area-inset-bottom))' }}>
         {error ? (
           <div className="mx-4 mt-4 p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-600 text-center">
             {error}
@@ -340,7 +358,7 @@ export default function MatchesPage() {
 
           /* ── DATE VIEW ── */
           matchesByDate.map(({ date, dayMatches }) => (
-            <div key={date}>
+            <div key={date} data-date={date}>
               <div className="flex items-center gap-2 mt-4 mb-2">
                 <span style={{ fontSize: 11, fontWeight: 600, color: '#555', whiteSpace: 'nowrap' }}>
                   {date}
