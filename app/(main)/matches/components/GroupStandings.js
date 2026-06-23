@@ -31,19 +31,105 @@ const FLAGS = {
   'England': 'gb-eng', 'Croatia': 'hr', 'Ghana': 'gh', 'Panama': 'pa',
 }
 
+// Helper: compute head-to-head stats for a subset of teams, using only
+// matches played between those exact teams with a recorded result.
+function computeH2H(teamNames, groupMatches) {
+  const inGroup = new Set(teamNames)
+  const h2h = {}
+  for (const t of teamNames) h2h[t] = { pts: 0, gd: 0, gf: 0 }
+
+  for (const m of groupMatches) {
+    if (!inGroup.has(m.home_team) || !inGroup.has(m.away_team)) continue
+    if (m.result_home === null || m.result_home === undefined ||
+        m.result_away === null || m.result_away === undefined) continue
+
+    h2h[m.home_team].gf += m.result_home
+    h2h[m.home_team].gd += m.result_home - m.result_away
+    h2h[m.away_team].gf += m.result_away
+    h2h[m.away_team].gd += m.result_away - m.result_home
+
+    if (m.result_home > m.result_away)      { h2h[m.home_team].pts += 3 }
+    else if (m.result_home < m.result_away) { h2h[m.away_team].pts += 3 }
+    else { h2h[m.home_team].pts += 1; h2h[m.away_team].pts += 1 }
+  }
+  return h2h
+}
+
+// Helper: sort a set of teams already tied on total points.
+// Applies H2H criteria (1-3) first, then overall criteria (4-5) for any
+// teams still tied after H2H, then alphabetical as final fallback.
+function sortTiedSubgroup(rows, groupMatches) {
+  if (rows.length <= 1) return rows
+
+  const h2h = computeH2H(rows.map(r => r.team), groupMatches)
+
+  const sorted = [...rows].sort((a, b) =>
+    (h2h[b.team].pts - h2h[a.team].pts) ||
+    (h2h[b.team].gd  - h2h[a.team].gd)  ||
+    (h2h[b.team].gf  - h2h[a.team].gf)  ||
+    (b.gd - a.gd) ||
+    (b.gf - a.gf) ||
+    a.team.localeCompare(b.team)
+  )
+
+  // Find any sub-groups still tied on all three H2H criteria, and sort
+  // those sub-groups using only overall criteria (4-5 + alphabetical).
+  const result = []
+  let i = 0
+  while (i < sorted.length) {
+    let j = i + 1
+    while (j < sorted.length) {
+      const ha = h2h[sorted[i].team], hb = h2h[sorted[j].team]
+      if (ha.pts === hb.pts && ha.gd === hb.gd && ha.gf === hb.gf) j++
+      else break
+    }
+    if (j - i > 1) {
+      const sub = sorted.slice(i, j).sort((a, b) =>
+        (b.gd - a.gd) || (b.gf - a.gf) || a.team.localeCompare(b.team)
+      )
+      result.push(...sub)
+    } else {
+      result.push(sorted[i])
+    }
+    i = j
+  }
+  return result
+}
+
+// Main sort: separate teams by total pts first, then apply the full
+// FIFA 2026 tiebreaker sequence within each tied group.
+function sortGroupStandings(rows, groupMatches) {
+  const byPts = [...rows].sort((a, b) => b.pts - a.pts)
+  const result = []
+  let i = 0
+  while (i < byPts.length) {
+    let j = i + 1
+    while (j < byPts.length && byPts[j].pts === byPts[i].pts) j++
+    if (j - i > 1) {
+      result.push(...sortTiedSubgroup(byPts.slice(i, j), groupMatches))
+    } else {
+      result.push(byPts[i])
+    }
+    i = j
+  }
+  return result
+}
+
 // Computes standings per group from actual match results only (admin-entered
 // 90-min scores). Bets are never used here. Matches without a result yet
 // (result_home/result_away null) still register the team in the group, but
 // don't count toward played/won/drawn/lost/goals.
 function computeStandings(matches) {
   const teamsByGroup = {}
+  const matchesByGroup = {}
   const stats = {}
 
   for (const m of matches) {
     const group = m.match_group
     if (!group) continue
 
-    if (!teamsByGroup[group]) teamsByGroup[group] = new Set()
+    if (!teamsByGroup[group]) { teamsByGroup[group] = new Set(); matchesByGroup[group] = [] }
+    matchesByGroup[group].push(m)
     teamsByGroup[group].add(m.home_team)
     teamsByGroup[group].add(m.away_team)
 
@@ -80,14 +166,7 @@ function computeStandings(matches) {
         pts: s.won * 3 + s.drawn,
       }
     })
-    // Pts → GD → goals scored → alphabetical (final fallback when fully tied)
-    rows.sort((a, b) =>
-      b.pts - a.pts ||
-      b.gd - a.gd ||
-      b.gf - a.gf ||
-      a.team.localeCompare(b.team)
-    )
-    standingsByGroup[group] = rows
+    standingsByGroup[group] = sortGroupStandings(rows, matchesByGroup[group])
   }
   return standingsByGroup
 }
