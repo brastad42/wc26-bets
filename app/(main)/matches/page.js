@@ -159,6 +159,11 @@ export default function MatchesPage() {
   }
 
   useEffect(() => {
+    if (sortMode !== 'tables' || loading || matches.length === 0) return
+    scrollContainerRef.current?.scrollTo({ top: 0, behavior: 'instant' })
+  }, [sortMode, loading, matches])
+
+  useEffect(() => {
     if (sortMode !== 'date' || loading || matches.length === 0) return
     const todayKey = new Date().toLocaleDateString('en-GB', {
       weekday: 'short', day: 'numeric', month: 'short', timeZone: 'Europe/Oslo'
