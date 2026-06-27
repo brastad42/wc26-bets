@@ -2,8 +2,36 @@
 
 import { useEffect, useState } from 'react'
 import Image from 'next/image'
+import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import LogoutButton from '@/app/components/LogoutButton'
+
+function getUpcomingDeadline(stages, matches) {
+  const now = new Date()
+  const WINDOW_MS = 48 * 60 * 60 * 1000
+  const STAGE_ORDER = ['Group', 'R32', 'R16', 'QF', 'SF', 'Final']
+
+  for (const stageName of STAGE_ORDER) {
+    const isOpen = stages.some(s => s.stage === stageName && s.is_open)
+    if (!isOpen) continue
+
+    const stageMatches = matches.filter(m => m.stage === stageName)
+    if (!stageMatches.length) continue
+
+    const firstMatch = stageMatches.reduce((earliest, m) =>
+      new Date(m.match_time) < new Date(earliest.match_time) ? m : earliest
+    )
+
+    const deadline = new Date(firstMatch.match_time)
+    const msUntil = deadline - now
+
+    if (msUntil > 0 && msUntil <= WINDOW_MS) {
+      return { stage: stageName, deadline }
+    }
+  }
+
+  return null
+}
 
 export default function LeaderboardPage() {
   const [nonce, setNonce] = useState(0)
@@ -37,11 +65,15 @@ function LeaderboardContent() {
   const [userId] = useState(() => typeof window !== 'undefined' ? localStorage.getItem('userId') : null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [stages, setStages] = useState([])
+  const [matches, setMatches] = useState([])
 
   async function fetchLeaderboard() {
-    const [{ data, error: fetchError }, { data: usersData }] = await Promise.all([
+    const [{ data, error: fetchError }, { data: usersData }, { data: stageData }, { data: matchData }] = await Promise.all([
       supabase.rpc('get_leaderboard'),
       supabase.from('users').select('id, country_code'),
+      supabase.from('stages').select('stage, is_open'),
+      supabase.from('matches').select('stage, match_time'),
     ])
     if (fetchError) {
       setError('Could not load leaderboard — please refresh the page.')
@@ -51,6 +83,8 @@ function LeaderboardContent() {
     const countryMap = {}
     usersData?.forEach(u => { countryMap[u.id] = u.country_code })
     setLeaderboard((data || []).map(u => ({ ...u, country_code: countryMap[u.id] ?? null })))
+    setStages(stageData || [])
+    setMatches(matchData || [])
     setLoading(false)
   }
 
@@ -58,8 +92,60 @@ function LeaderboardContent() {
     fetchLeaderboard()
   }, [])
 
+  const reminder = getUpcomingDeadline(stages, matches)
+  const formattedDeadline = reminder
+    ? reminder.deadline.toLocaleString('en-GB', {
+        timeZone: 'Europe/Oslo',
+        weekday: 'short',
+        day: 'numeric',
+        month: 'short',
+        hour: '2-digit',
+        minute: '2-digit',
+      })
+    : null
+
   return (
       <div className="flex-1 overflow-y-auto px-3 pt-3" style={{ paddingBottom: 'calc(4rem + env(safe-area-inset-bottom))' }}>
+        {reminder && (
+          <div style={{
+            backgroundColor: '#FAEEDA',
+            border: '1px solid #FAC775',
+            borderRadius: '12px',
+            padding: '10px 12px',
+            marginBottom: '12px',
+            display: 'flex',
+            gap: '10px',
+            alignItems: 'flex-start',
+          }}>
+            <span style={{ fontSize: '18px', flexShrink: 0, marginTop: '1px' }}>⏰</span>
+            <div style={{ flex: 1 }}>
+              <p style={{ fontSize: '13px', fontWeight: '600', color: '#633806', margin: '0 0 2px' }}>
+                {reminder.stage} bets close soon
+              </p>
+              <p style={{ fontSize: '12px', color: '#854F0B', margin: '0 0 4px', lineHeight: '1.4' }}>
+                Place your bets before the first {reminder.stage} match kicks off
+              </p>
+              <p style={{ fontSize: '12px', fontWeight: '600', color: '#412402', margin: '0 0 6px' }}>
+                Deadline: {formattedDeadline}
+              </p>
+              <Link
+                href="/matches"
+                style={{
+                  display: 'inline-block',
+                  fontSize: '12px',
+                  fontWeight: '500',
+                  color: '#fff',
+                  backgroundColor: '#BA7517',
+                  borderRadius: '6px',
+                  padding: '3px 10px',
+                  textDecoration: 'none',
+                }}
+              >
+                Place bets →
+              </Link>
+            </div>
+          </div>
+        )}
         {loading ? (
           <p className="text-sm text-gray-400 text-center mt-8">Loading...</p>
         ) : error ? (
