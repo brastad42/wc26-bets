@@ -36,7 +36,9 @@ function formatTime(utcString) {
 }
 
 export default function MatchesPage() {
-  const [activeStage, setActiveStage] = useState('Group')
+  const [activeStage, setActiveStage] = useState(() => {
+    try { return localStorage.getItem('matchesActiveStage') || 'Group' } catch { return 'Group' }
+  })
   const [matches, setMatches] = useState([])
   const [stageStatus, setStageStatus] = useState({})
   const [bets, setBets] = useState([])
@@ -148,14 +150,17 @@ export default function MatchesPage() {
       setStageStatus(statusMap)
       setUsers(userData || [])
 
-      await fetchStage('Group', uid)
+      const savedStage = (() => { try { return localStorage.getItem('matchesActiveStage') || 'Group' } catch { return 'Group' } })()
+      await fetchStage(savedStage, uid)
     }
     init()
   }, [])
 
   function handleStageChange(stage) {
     setActiveStage(stage)
+    try { localStorage.setItem('matchesActiveStage', stage) } catch {}
     fetchStage(stage, userId)
+    scrollContainerRef.current?.scrollTo({ top: 0, behavior: 'instant' })
   }
 
   useEffect(() => {
