@@ -111,7 +111,7 @@ export default function ProgressionView({ allUsers, currentUserId }) {
     const target = fraction * scrollRef.current.scrollWidth - scrollRef.current.clientWidth + 32
     scrollRef.current.scrollLeft = Math.max(0, target)
     setShowLeftFade(scrollRef.current.scrollLeft > 4)
-  }, [selected.length > 0 ? 'has-data' : 'no-data', matches.length])
+  }, [selected.length > 0 ? 'has-data' : 'no-data', matches.length, loadingAllBets])
 
   function handleScroll() {
     if (scrollRef.current) setShowLeftFade(scrollRef.current.scrollLeft > 4)
