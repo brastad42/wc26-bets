@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceArea,
@@ -22,13 +22,32 @@ function calcPoints(match, betHome, betAway) {
   return 0
 }
 
+// Pagination pattern from stats/page.js — fetches all rows past the 1000-row PostgREST cap
+async function fetchAllBets() {
+  const PAGE = 1000
+  let all = []
+  let from = 0
+  while (true) {
+    const { data, error } = await supabase
+      .from('bets')
+      .select('user_id, match_id, bet_home, bet_away')
+      .range(from, from + PAGE - 1)
+    if (error) return { data: null, error }
+    all = all.concat(data || [])
+    if (!data || data.length < PAGE) break
+    from += PAGE
+  }
+  return { data: all, error: null }
+}
+
 export default function ProgressionView({ allUsers, currentUserId }) {
   const [matches, setMatches] = useState([])
-  const [bets, setBets] = useState([])
+  const [allBets, setAllBets] = useState([])
   const [selected, setSelected] = useState([])
   const [query, setQuery] = useState('')
   const [open, setOpen] = useState(false)
   const [loadingMatches, setLoadingMatches] = useState(true)
+  const [loadingAllBets, setLoadingAllBets] = useState(true)
   const [showLeftFade, setShowLeftFade] = useState(false)
   const dropdownRef = useRef(null)
   const searchRef = useRef(null)
@@ -36,7 +55,7 @@ export default function ProgressionView({ allUsers, currentUserId }) {
   const initialized = useRef(false)
 
   useEffect(() => {
-    async function fetchMatches() {
+    async function load() {
       const { data } = await supabase
         .from('matches')
         .select('id, stage, match_time, result_home, result_away')
@@ -44,7 +63,17 @@ export default function ProgressionView({ allUsers, currentUserId }) {
       setMatches(data || [])
       setLoadingMatches(false)
     }
-    fetchMatches()
+    load()
+  }, [])
+
+  // Fetch ALL bets once on mount — paginated, independent of selected players
+  useEffect(() => {
+    async function load() {
+      const { data } = await fetchAllBets()
+      setAllBets(data || [])
+      setLoadingAllBets(false)
+    }
+    load()
   }, [])
 
   // Load saved selection once allUsers is populated (runs once on first non-empty allUsers)
@@ -60,22 +89,6 @@ export default function ProgressionView({ allUsers, currentUserId }) {
       setSelected([])
     }
   }, [allUsers])
-
-  // Fetch bets for selected users only
-  useEffect(() => {
-    if (selected.length === 0) {
-      setBets([])
-      return
-    }
-    async function fetchBets() {
-      const { data } = await supabase
-        .from('bets')
-        .select('user_id, match_id, bet_home, bet_away')
-        .in('user_id', selected)
-      setBets(data || [])
-    }
-    fetchBets()
-  }, [selected])
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -119,35 +132,75 @@ export default function ProgressionView({ allUsers, currentUserId }) {
     try { localStorage.setItem('leaderboardProgressionSelected', JSON.stringify(updated)) } catch {}
   }
 
-  // User lookup map and rank map (by current total_points)
+  // User lookup map
   const userById = {}
   for (const u of (allUsers || [])) userById[u.id] = u
 
-  const rankMap = {}
-  const sortedByPoints = [...(allUsers || [])].sort((a, b) => b.total_points - a.total_points)
-  let currentRank = 1
-  sortedByPoints.forEach((u, idx) => {
-    if (idx > 0 && u.total_points !== sortedByPoints[idx - 1].total_points) currentRank = idx + 1
-    rankMap[u.id] = currentRank
-  })
+  // Cumulative points and exact hits per user per match index (all active users, not just selected)
+  const cumulativeByUser = useMemo(() => {
+    if (!allUsers || allUsers.length === 0 || matches.length === 0) return {}
+    const betLookup = {}
+    for (const b of allBets) {
+      if (!betLookup[b.user_id]) betLookup[b.user_id] = {}
+      betLookup[b.user_id][b.match_id] = { bet_home: b.bet_home, bet_away: b.bet_away }
+    }
+    const result = {}
+    for (const user of allUsers) {
+      let cumPts = 0, cumExact = 0
+      const points = [], exact = []
+      for (const match of matches) {
+        if (match.result_home !== null && match.result_away !== null) {
+          const bet = betLookup[user.id]?.[match.id]
+          if (bet) {
+            cumPts += calcPoints(match, bet.bet_home, bet.bet_away) ?? 0
+            if (bet.bet_home === match.result_home && bet.bet_away === match.result_away) cumExact++
+          }
+        }
+        points.push(cumPts)
+        exact.push(cumExact)
+      }
+      result[user.id] = { points, exact, alias: user.alias }
+    }
+    return result
+  }, [allBets, allUsers, matches])
 
-  // Bet lookup: { [userId]: { [matchId]: { bet_home, bet_away } } }
-  const betMap = {}
-  for (const b of bets) {
-    if (!betMap[b.user_id]) betMap[b.user_id] = {}
-    betMap[b.user_id][b.match_id] = { bet_home: b.bet_home, bet_away: b.bet_away }
-  }
+  // Rank per user per match index — same (points desc, exact desc, alias asc) + shared-rank
+  // logic as LeaderboardContent's currentRank loop
+  const rankByMatchIndex = useMemo(() => {
+    const userIds = Object.keys(cumulativeByUser)
+    if (userIds.length === 0 || matches.length === 0) return {}
+    const result = {}
+    for (let i = 0; i < matches.length; i++) {
+      const sorted = [...userIds].sort((a, b) => {
+        const ptsA = cumulativeByUser[a].points[i], ptsB = cumulativeByUser[b].points[i]
+        if (ptsB !== ptsA) return ptsB - ptsA
+        const exA = cumulativeByUser[a].exact[i], exB = cumulativeByUser[b].exact[i]
+        if (exB !== exA) return exB - exA
+        return cumulativeByUser[a].alias.localeCompare(cumulativeByUser[b].alias)
+      })
+      const rankAtI = {}
+      let currentRank = 1
+      for (let j = 0; j < sorted.length; j++) {
+        if (j > 0) {
+          const prev = sorted[j - 1], curr = sorted[j]
+          if (
+            cumulativeByUser[curr].points[i] !== cumulativeByUser[prev].points[i] ||
+            cumulativeByUser[curr].exact[i] !== cumulativeByUser[prev].exact[i]
+          ) currentRank = j + 1
+        }
+        rankAtI[sorted[j]] = currentRank
+      }
+      result[i] = rankAtI
+    }
+    return result
+  }, [cumulativeByUser, matches])
 
-  // Build cumulative chart data in kickoff order
+  // Build chart data for selected users only (sourced from cumulativeByUser)
   const chartData = []
   const stageFirstIndex = {}
-  const runningTotals = {}
-  for (const uid of selected) runningTotals[uid] = 0
-
   for (let i = 0; i < matches.length; i++) {
     const match = matches[i]
     if (!(match.stage in stageFirstIndex)) stageFirstIndex[match.stage] = i
-
     const row = {
       i,
       date: new Date(match.match_time).toLocaleDateString('en-GB', {
@@ -155,16 +208,9 @@ export default function ProgressionView({ allUsers, currentUserId }) {
       }),
       stage: match.stage,
     }
-
     for (const uid of selected) {
-      if (match.result_home !== null && match.result_away !== null) {
-        const userBet = betMap[uid]?.[match.id]
-        const pts = userBet ? (calcPoints(match, userBet.bet_home, userBet.bet_away) ?? 0) : 0
-        runningTotals[uid] += pts
-      }
-      row[uid] = runningTotals[uid]
+      row[uid] = cumulativeByUser[uid]?.points[i] ?? 0
     }
-
     chartData.push(row)
   }
 
@@ -308,10 +354,14 @@ export default function ProgressionView({ allUsers, currentUserId }) {
         </div>
       )}
 
-      {/* Chart or empty state */}
+      {/* Chart or empty/loading state */}
       {selected.length === 0 ? (
         <p style={{ textAlign: 'center', color: '#bbb', fontSize: 13, marginTop: 32 }}>
           Add players above to see their points progression
+        </p>
+      ) : loadingAllBets ? (
+        <p style={{ textAlign: 'center', color: '#aaa', fontSize: 13, marginTop: 32 }}>
+          Loading player rankings...
         </p>
       ) : (
         <>
@@ -337,76 +387,86 @@ export default function ProgressionView({ allUsers, currentUserId }) {
                       data={chartData}
                       margin={{ top: 24, right: 16, left: -16, bottom: 4 }}
                     >
-              {/* ReferenceArea bands first so CartesianGrid renders on top */}
-              {stageRanges.map(({ stage, start, end, orderIdx }) => (
-                <ReferenceArea
-                  key={stage}
-                  x1={start}
-                  x2={end}
-                  fill={orderIdx % 2 === 0 ? '#f7f7f7' : '#ffffff'}
-                  fillOpacity={1}
-                  label={{
-                    value: STAGE_SHORT[stage] || stage,
-                    position: 'top',
-                    fontSize: 9,
-                    fill: orderIdx % 2 === 0 ? '#bbb' : '#0a5c45',
-                    fontWeight: orderIdx % 2 === 0 ? 400 : 600,
-                  }}
-                />
-              ))}
-              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-              <XAxis
-                dataKey="i"
-                tick={{ fontSize: 10, fill: '#bbb' }}
-                tickFormatter={v => v + 1}
-              />
-              <YAxis tick={{ fontSize: 10, fill: '#bbb' }} />
-              <Tooltip
-                content={({ active, payload, label }) => {
-                  if (!active || !payload || !payload.length) return null
-                  const row = chartData[label]
-                  if (!row) return null
-                  const sorted = [...payload].sort((a, b) => b.value - a.value)
-                  return (
-                    <div style={{
-                      background: '#fff',
-                      border: '1px solid #e8e8e8',
-                      borderRadius: 10,
-                      padding: '8px 12px',
-                      fontSize: 12,
-                      boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-                      minWidth: 160,
-                    }}>
-                      <p style={{ fontWeight: 600, color: '#333', margin: '0 0 6px' }}>
-                        Match {Number(label) + 1} · {row.date} · {row.stage}
-                      </p>
-                      {sorted.map(p => (
-                        <div key={p.dataKey} style={{
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          gap: 12,
-                          color: p.color,
-                          marginBottom: 2,
-                        }}>
-                          <span>#{rankMap[p.dataKey]} {userById[p.dataKey]?.alias ?? p.dataKey}{p.dataKey === currentUserId ? ' (you)' : ''}</span>
-                          <span style={{ fontWeight: 600 }}>{p.value} pts</span>
-                        </div>
+                      {/* ReferenceArea bands first so CartesianGrid renders on top */}
+                      {stageRanges.map(({ stage, start, end, orderIdx }) => (
+                        <ReferenceArea
+                          key={stage}
+                          x1={start}
+                          x2={end}
+                          fill={orderIdx % 2 === 0 ? '#f7f7f7' : '#ffffff'}
+                          fillOpacity={1}
+                          label={{
+                            value: STAGE_SHORT[stage] || stage,
+                            position: 'top',
+                            fontSize: 9,
+                            fill: orderIdx % 2 === 0 ? '#bbb' : '#0a5c45',
+                            fontWeight: orderIdx % 2 === 0 ? 400 : 600,
+                          }}
+                        />
                       ))}
-                    </div>
-                  )
-                }}
-              />
-              {selected.map((uid, idx) => (
-                <Line
-                  key={uid}
-                  type="monotone"
-                  dataKey={uid}
-                  stroke={COLORS[idx % COLORS.length]}
-                  strokeWidth={2}
-                  dot={false}
-                  activeDot={{ r: 4 }}
-                />
-              ))}
+                      <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                      <XAxis
+                        dataKey="i"
+                        tick={{ fontSize: 10, fill: '#bbb' }}
+                        tickFormatter={v => v + 1}
+                      />
+                      <YAxis tick={{ fontSize: 10, fill: '#bbb' }} />
+                      <Tooltip
+                        content={({ active, payload, label }) => {
+                          if (!active || !payload || !payload.length) return null
+                          const row = chartData[label]
+                          if (!row) return null
+                          const matchIdx = Number(label)
+                          // Sort by (points desc, exact desc, alias asc) — same comparator as rankByMatchIndex
+                          const sorted = [...payload].sort((a, b) => {
+                            const ptsA = cumulativeByUser[a.dataKey]?.points[matchIdx] ?? 0
+                            const ptsB = cumulativeByUser[b.dataKey]?.points[matchIdx] ?? 0
+                            if (ptsB !== ptsA) return ptsB - ptsA
+                            const exA = cumulativeByUser[a.dataKey]?.exact[matchIdx] ?? 0
+                            const exB = cumulativeByUser[b.dataKey]?.exact[matchIdx] ?? 0
+                            if (exB !== exA) return exB - exA
+                            return (userById[a.dataKey]?.alias ?? '').localeCompare(userById[b.dataKey]?.alias ?? '')
+                          })
+                          return (
+                            <div style={{
+                              background: '#fff',
+                              border: '1px solid #e8e8e8',
+                              borderRadius: 10,
+                              padding: '8px 12px',
+                              fontSize: 12,
+                              boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                              minWidth: 160,
+                            }}>
+                              <p style={{ fontWeight: 600, color: '#333', margin: '0 0 6px' }}>
+                                Match {matchIdx + 1} · {row.date} · {row.stage}
+                              </p>
+                              {sorted.map(p => (
+                                <div key={p.dataKey} style={{
+                                  display: 'flex',
+                                  justifyContent: 'space-between',
+                                  gap: 12,
+                                  color: p.color,
+                                  marginBottom: 2,
+                                }}>
+                                  <span>#{rankByMatchIndex[matchIdx]?.[p.dataKey] ?? '?'} {userById[p.dataKey]?.alias ?? p.dataKey}{p.dataKey === currentUserId ? ' (you)' : ''}</span>
+                                  <span style={{ fontWeight: 600 }}>{p.value} pts</span>
+                                </div>
+                              ))}
+                            </div>
+                          )
+                        }}
+                      />
+                      {selected.map((uid, idx) => (
+                        <Line
+                          key={uid}
+                          type="monotone"
+                          dataKey={uid}
+                          stroke={COLORS[idx % COLORS.length]}
+                          strokeWidth={2}
+                          dot={false}
+                          activeDot={{ r: 4 }}
+                        />
+                      ))}
                     </LineChart>
                   </ResponsiveContainer>
                 </div>
