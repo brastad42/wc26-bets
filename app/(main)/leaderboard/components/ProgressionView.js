@@ -209,7 +209,7 @@ export default function ProgressionView({ allUsers, currentUserId }) {
             padding: '8px 12px',
             borderRadius: 10,
             border: '1px solid #e0e0e0',
-            fontSize: 13,
+            fontSize: 16,
             outline: 'none',
             background: selected.length >= MAX_SELECTED ? '#f5f5f5' : '#fff',
             color: '#333',
