@@ -5,6 +5,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import LogoutButton from '@/app/components/LogoutButton'
+import ProgressionView from './components/ProgressionView'
 
 function getUpcomingDeadline(stages, matches) {
   const now = new Date()
@@ -35,6 +36,15 @@ function getUpcomingDeadline(stages, matches) {
 
 export default function LeaderboardPage() {
   const [nonce, setNonce] = useState(0)
+  const [view, setView] = useState(() => {
+    try { return localStorage.getItem('leaderboardView') || 'list' } catch { return 'list' }
+  })
+
+  function handleViewChange(mode) {
+    setView(mode)
+    try { localStorage.setItem('leaderboardView', mode) } catch {}
+  }
+
   return (
     <div className="h-dvh flex flex-col" style={{ background: '#f4f5f7' }}>
       <div className="flex-shrink-0" style={{ background: '#0a5c45' }}>
@@ -54,13 +64,35 @@ export default function LeaderboardPage() {
             <LogoutButton />
           </div>
         </div>
+        <div className="flex items-center gap-2 px-3 pb-3">
+          <div style={{ display: 'flex', background: 'rgba(255,255,255,0.12)', borderRadius: 8, padding: 2, gap: 2 }}>
+            {[['list', '📋 List'], ['progression', '📈 Progression']].map(([mode, label]) => (
+              <button
+                key={mode}
+                onClick={() => handleViewChange(mode)}
+                style={{
+                  padding: '4px 10px',
+                  borderRadius: 6,
+                  fontSize: 11,
+                  fontWeight: 500,
+                  border: 'none',
+                  cursor: 'pointer',
+                  background: view === mode ? '#fff' : 'transparent',
+                  color: view === mode ? '#0a5c45' : 'rgba(255,255,255,0.6)',
+                }}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
-      <LeaderboardContent key={nonce} />
+      <LeaderboardContent key={nonce} view={view} />
     </div>
   )
 }
 
-function LeaderboardContent() {
+function LeaderboardContent({ view }) {
   const [leaderboard, setLeaderboard] = useState([])
   const [userId] = useState(() => typeof window !== 'undefined' ? localStorage.getItem('userId') : null)
   const [loading, setLoading] = useState(true)
@@ -152,7 +184,7 @@ function LeaderboardContent() {
           <div className="mx-4 mt-4 p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-600 text-center">
             {error}
           </div>
-        ) : (
+        ) : view === 'list' ? (
           <div className="bg-white rounded-2xl overflow-hidden shadow-sm">
 
             {/* Header */}
@@ -222,6 +254,11 @@ function LeaderboardContent() {
             </p>
 
           </div>
+        ) : (
+          <ProgressionView
+            allUsers={leaderboard.map(u => ({ id: u.id, alias: u.alias, total_points: u.total_points }))}
+            currentUserId={userId}
+          />
         )}
       </div>
   )
