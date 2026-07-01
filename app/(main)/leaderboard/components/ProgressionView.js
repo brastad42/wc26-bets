@@ -119,9 +119,17 @@ export default function ProgressionView({ allUsers, currentUserId }) {
     try { localStorage.setItem('leaderboardProgressionSelected', JSON.stringify(updated)) } catch {}
   }
 
-  // User lookup map
+  // User lookup map and rank map (by current total_points)
   const userById = {}
   for (const u of (allUsers || [])) userById[u.id] = u
+
+  const rankMap = {}
+  const sortedByPoints = [...(allUsers || [])].sort((a, b) => b.total_points - a.total_points)
+  let currentRank = 1
+  sortedByPoints.forEach((u, idx) => {
+    if (idx > 0 && u.total_points !== sortedByPoints[idx - 1].total_points) currentRank = idx + 1
+    rankMap[u.id] = currentRank
+  })
 
   // Bet lookup: { [userId]: { [matchId]: { bet_home, bet_away } } }
   const betMap = {}
@@ -380,7 +388,7 @@ export default function ProgressionView({ allUsers, currentUserId }) {
                           color: p.color,
                           marginBottom: 2,
                         }}>
-                          <span>{userById[p.dataKey]?.alias ?? p.dataKey}{p.dataKey === currentUserId ? ' (you)' : ''}</span>
+                          <span>#{rankMap[p.dataKey]} {userById[p.dataKey]?.alias ?? p.dataKey}{p.dataKey === currentUserId ? ' (you)' : ''}</span>
                           <span style={{ fontWeight: 600 }}>{p.value} pts</span>
                         </div>
                       ))}
