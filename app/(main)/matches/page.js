@@ -155,7 +155,7 @@ export default function MatchesPage() {
       setUsers(userData || [])
 
       const savedStage = (() => { try { return localStorage.getItem('matchesActiveStage') || 'Group' } catch { return 'Group' } })()
-      await fetchStage(savedStage, uid)
+      await fetchStage(stageFromUrl || savedStage, uid)
     }
     init()
   }, [])
