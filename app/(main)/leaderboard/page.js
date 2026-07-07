@@ -161,7 +161,7 @@ function LeaderboardContent({ view }) {
                 Deadline: {formattedDeadline}
               </p>
               <Link
-                href="/matches"
+                href={`/matches?stage=${reminder.stage}`}
                 style={{
                   display: 'inline-block',
                   fontSize: '12px',

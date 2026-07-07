@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import MatchCard from './components/MatchCard'
 import GroupStandings from './components/GroupStandings'
@@ -36,7 +37,10 @@ function formatTime(utcString) {
 }
 
 export default function MatchesPage() {
+  const searchParams = useSearchParams()
+  const stageFromUrl = searchParams.get('stage')
   const [activeStage, setActiveStage] = useState(() => {
+    if (stageFromUrl) return stageFromUrl
     try { return localStorage.getItem('matchesActiveStage') || 'Group' } catch { return 'Group' }
   })
   const [matches, setMatches] = useState([])
