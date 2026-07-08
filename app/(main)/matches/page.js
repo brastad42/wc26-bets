@@ -192,8 +192,14 @@ export default function MatchesPage() {
       matchesByDate[matchesByDate.length - 1]
     if (!target) return
     setTimeout(() => {
-      const el = scrollContainerRef.current?.querySelector(`[data-date="${target.date}"]`)
-      el?.scrollIntoView({ block: 'start', behavior: 'instant' })
+      const container = scrollContainerRef.current
+      const el = container?.querySelector(`[data-date="${target.date}"]`)
+      if (!container || !el) return
+      // Scroll only the vertical axis directly (rather than scrollIntoView,
+      // whose default inline:'nearest' can trigger a stray horizontal page
+      // scroll while the swipe-stage transform is mid-transition).
+      const top = el.getBoundingClientRect().top - container.getBoundingClientRect().top + container.scrollTop
+      container.scrollTo({ top, behavior: 'instant' })
     }, 50)
   }, [sortMode, loading, matches])
 
@@ -316,7 +322,7 @@ export default function MatchesPage() {
       {/* Content */}
       <div
         ref={scrollContainerRef}
-        className="flex-1 overflow-y-auto px-3 pt-3 relative"
+        className="flex-1 overflow-y-auto overflow-x-hidden px-3 pt-3 relative"
         style={{
           paddingBottom: 'calc(4rem + env(safe-area-inset-bottom))',
           transform: dragOffset ? `translateX(${dragOffset}px)` : undefined,

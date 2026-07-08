@@ -30,7 +30,8 @@
       "Bash(python -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(json.dumps\\(d.get\\('devDependencies',{}\\), indent=2\\)\\)\")",
       "PowerShell(Get-Command chrome, chromium, \"chromium-browser\" -ErrorAction SilentlyContinue)",
       "Read(//tmp/**)",
-      "Bash(node -e ' *)"
+      "Bash(node -e ' *)",
+      "Bash(npx eslint *)"
     ]
   }
 }
