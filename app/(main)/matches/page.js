@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase'
 import MatchCard from './components/MatchCard'
 import GroupStandings from './components/GroupStandings'
 import LogoutButton from '@/app/components/LogoutButton'
+import { useSwipeStage } from '@/app/hooks/useSwipeStage'
 
 const STAGES = ['Group', 'R32', 'R16', 'QF', 'SF', 'Final']
 
@@ -167,6 +168,13 @@ export default function MatchesPage() {
     scrollContainerRef.current?.scrollTo({ top: 0, behavior: 'instant' })
   }
 
+  const { dragOffset, isDragging, bounceEdge } = useSwipeStage({
+    containerRef: scrollContainerRef,
+    stages: STAGES,
+    activeStage,
+    onChangeStage: handleStageChange,
+  })
+
   useEffect(() => {
     if (sortMode !== 'tables' || loading || matches.length === 0) return
     scrollContainerRef.current?.scrollTo({ top: 0, behavior: 'instant' })
@@ -306,7 +314,28 @@ export default function MatchesPage() {
       )}
 
       {/* Content */}
-      <div ref={scrollContainerRef} className="flex-1 overflow-y-auto px-3 pt-3" style={{ paddingBottom: 'calc(4rem + env(safe-area-inset-bottom))' }}>
+      <div
+        ref={scrollContainerRef}
+        className="flex-1 overflow-y-auto px-3 pt-3 relative"
+        style={{
+          paddingBottom: 'calc(4rem + env(safe-area-inset-bottom))',
+          transform: dragOffset ? `translateX(${dragOffset}px)` : undefined,
+          transition: isDragging ? 'none' : 'transform 280ms ease-out',
+        }}
+      >
+        {bounceEdge && (
+          <div
+            className="pointer-events-none absolute top-0 bottom-0"
+            style={{
+              [bounceEdge === 'start' ? 'left' : 'right']: 0,
+              width: 24,
+              background: bounceEdge === 'start'
+                ? 'linear-gradient(to right, rgba(10,92,69,0.15), transparent)'
+                : 'linear-gradient(to left, rgba(10,92,69,0.15), transparent)',
+              transition: 'opacity 200ms ease-out',
+            }}
+          />
+        )}
         {error ? (
           <div className="mx-4 mt-4 p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-600 text-center">
             {error}
