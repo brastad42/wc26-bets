@@ -6,8 +6,8 @@ import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceArea,
 } from 'recharts'
 
-const MAX_SELECTED = 8
-const COLORS = ['#0a5c45', '#1D9E75', '#5DCAA5', '#BA7517', '#993C1D', '#412402', '#3B6EA5', '#7B4FA6']
+const MAX_SELECTED = 10
+const COLORS = ['#0a5c45', '#1D9E75', '#5DCAA5', '#BA7517', '#993C1D', '#412402', '#3B6EA5', '#7B4FA6', '#C2185B', '#00796B']
 const STAGE_ORDER = ['Group', 'R32', 'R16', 'QF', 'SF', 'Final']
 const STAGE_SHORT = { Group: 'GROUP', R32: 'R32', R16: 'R16', QF: 'QF', SF: 'SF', Final: 'F' }
 const PX_PER_MATCH = 16
