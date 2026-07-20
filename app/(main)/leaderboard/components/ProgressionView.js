@@ -314,7 +314,7 @@ export default function ProgressionView({ allUsers, currentUserId }) {
           </div>
         )}
       </div>
-      <p style={{ fontSize: 11, color: '#aaa', marginBottom: 12 }}>Compare up to 8 players at once.</p>
+      <p style={{ fontSize: 11, color: '#aaa', marginBottom: 12 }}>Compare up to 10 players at once.</p>
 
       {/* Selected player chips */}
       {selected.length > 0 && (
