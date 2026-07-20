@@ -252,7 +252,7 @@ export default function ProgressionView({ allUsers, currentUserId }) {
         <input
           ref={searchRef}
           type="text"
-          placeholder={selected.length >= MAX_SELECTED ? 'Max 8 players selected' : 'Search players...'}
+          placeholder={selected.length >= MAX_SELECTED ? 'Max 10 players selected' : 'Search players...'}
           disabled={selected.length >= MAX_SELECTED}
           value={query}
           onChange={e => { setQuery(e.target.value); setOpen(true) }}
