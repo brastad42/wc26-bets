@@ -2,13 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
+import { calcPoints } from '@/lib/scoring'
 import LogoutButton from '@/app/components/LogoutButton'
-
-function calcPoints(resultHome, resultAway, betHome, betAway) {
-  if (betHome === resultHome && betAway === resultAway) return 3
-  if (Math.sign(betHome - betAway) === Math.sign(resultHome - resultAway)) return 1
-  return 0
-}
 
 function computeStats(users, matches, bets) {
   const activeUserIds = new Set(users.map(u => u.id))
@@ -115,7 +110,7 @@ function computeStats(users, matches, bets) {
     for (let i = 0; i < sortedFinishedMatches.length; i++) {
       const m = sortedFinishedMatches[i]
       const bet = bets.find(b => b.user_id === user.id && b.match_id === m.id)
-      const pts = bet ? calcPoints(m.result_home, m.result_away, bet.bet_home, bet.bet_away) : 0
+      const pts = bet ? (calcPoints(m, bet.bet_home, bet.bet_away) ?? 0) : 0
       if (pts === 0) {
         cur++
         if (cur > maxStreak) { maxStreak = cur; firstMaxEnd = i }

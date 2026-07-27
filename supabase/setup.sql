@@ -119,19 +119,23 @@ ALTER PUBLICATION supabase_realtime ADD TABLE reactions;
 -- GET_LEADERBOARD FUNCTION
 -- ---------------------------------------------------------------------------
 -- Returns one row per active user with aggregated points.
--- Scoring mirrors the client-side calcPoints() in MatchCard.js:
---   exact score (home+away both correct) → 3 pts
---   correct outcome (win/draw/loss) → 1 pt
---   wrong outcome → 0 pts
 -- Only bets on matches that have a result (result_home IS NOT NULL) count.
 -- ---------------------------------------------------------------------------
 
-CREATE OR REPLACE FUNCTION get_leaderboard()
+DROP FUNCTION IF EXISTS get_leaderboard();
+
+CREATE FUNCTION get_leaderboard()
 RETURNS TABLE (
   id           uuid,
   alias        text,
   total_points integer,
-  total_exact  integer
+  total_exact  integer,
+  exact_group  integer,
+  exact_r32    integer,
+  exact_r16    integer,
+  exact_qf     integer,
+  exact_sf     integer,
+  exact_final  integer
 )
 LANGUAGE sql
 SECURITY DEFINER
@@ -140,6 +144,7 @@ AS $$
   SELECT
     u.id,
     u.alias,
+    -- Mirrors lib/scoring.js calcPoints() — if you change the scoring rule, update both places.
     COALESCE(SUM(
       CASE
         WHEN m.result_home IS NULL THEN 0
@@ -156,7 +161,55 @@ AS $$
          AND b.bet_away = m.result_away THEN 1
         ELSE 0
       END
-    ), 0)::integer AS total_exact
+    ), 0)::integer AS total_exact,
+    COALESCE(SUM(
+      CASE
+        WHEN m.stage = 'Group'
+         AND b.bet_home = m.result_home
+         AND b.bet_away = m.result_away THEN 1
+        ELSE 0
+      END
+    ), 0)::integer AS exact_group,
+    COALESCE(SUM(
+      CASE
+        WHEN m.stage = 'R32'
+         AND b.bet_home = m.result_home
+         AND b.bet_away = m.result_away THEN 1
+        ELSE 0
+      END
+    ), 0)::integer AS exact_r32,
+    COALESCE(SUM(
+      CASE
+        WHEN m.stage = 'R16'
+         AND b.bet_home = m.result_home
+         AND b.bet_away = m.result_away THEN 1
+        ELSE 0
+      END
+    ), 0)::integer AS exact_r16,
+    COALESCE(SUM(
+      CASE
+        WHEN m.stage = 'QF'
+         AND b.bet_home = m.result_home
+         AND b.bet_away = m.result_away THEN 1
+        ELSE 0
+      END
+    ), 0)::integer AS exact_qf,
+    COALESCE(SUM(
+      CASE
+        WHEN m.stage = 'SF'
+         AND b.bet_home = m.result_home
+         AND b.bet_away = m.result_away THEN 1
+        ELSE 0
+      END
+    ), 0)::integer AS exact_sf,
+    COALESCE(SUM(
+      CASE
+        WHEN m.stage = 'Final'
+         AND b.bet_home = m.result_home
+         AND b.bet_away = m.result_away THEN 1
+        ELSE 0
+      END
+    ), 0)::integer AS exact_final
   FROM users u
   LEFT JOIN bets    b ON b.user_id  = u.id
   LEFT JOIN matches m ON m.id       = b.match_id

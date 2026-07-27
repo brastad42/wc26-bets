@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { supabase } from '@/lib/supabase'
+import { calcPoints } from '@/lib/scoring'
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceArea,
 } from 'recharts'
@@ -11,16 +12,6 @@ const COLORS = ['#0a5c45', '#1D9E75', '#5DCAA5', '#BA7517', '#993C1D', '#412402'
 const STAGE_ORDER = ['Group', 'R32', 'R16', 'QF', 'SF', 'Final']
 const STAGE_SHORT = { Group: 'GROUP', R32: 'R32', R16: 'R16', QF: 'QF', SF: 'SF', Final: 'F' }
 const PX_PER_MATCH = 16
-
-// Must stay in sync with calcPoints in MatchCard.js
-function calcPoints(match, betHome, betAway) {
-  if (match.result_home === null || match.result_away === null) return null
-  if (betHome === match.result_home && betAway === match.result_away) return 3
-  const resultWinner = Math.sign(match.result_home - match.result_away)
-  const betWinner = Math.sign(betHome - betAway)
-  if (resultWinner === betWinner) return 1
-  return 0
-}
 
 // Pagination pattern from stats/page.js — fetches all rows past the 1000-row PostgREST cap
 async function fetchAllBets() {

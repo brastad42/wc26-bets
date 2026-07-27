@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { supabase } from '@/lib/supabase'
+import { calcPoints } from '@/lib/scoring'
 import Image from 'next/image'
 
 const FLAGS = {
@@ -23,15 +24,6 @@ function getFlag(teamName) {
   const code = FLAGS[teamName]
   if (!code) return null
   return `https://flagcdn.com/w40/${code}.png`
-}
-
-function calcPoints(match, betHome, betAway) {
-  if (match.result_home === null || match.result_away === null) return null
-  if (betHome === match.result_home && betAway === match.result_away) return 3
-  const resultWinner = Math.sign(match.result_home - match.result_away)
-  const betWinner = Math.sign(betHome - betAway)
-  if (resultWinner === betWinner) return 1
-  return 0
 }
 
 function getMostPopularBet(bets) {

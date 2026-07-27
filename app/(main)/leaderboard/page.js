@@ -197,16 +197,23 @@ function LeaderboardContent({ view }) {
 
             {/* Rows */}
             {(() => {
+              const STAGE_TIEBREAK_FIELDS = ['exact_group', 'exact_r32', 'exact_r16', 'exact_qf', 'exact_sf', 'exact_final']
               const sorted = [...leaderboard].sort((a, b) => {
                 if (b.total_points !== a.total_points) return b.total_points - a.total_points
                 if (b.total_exact !== a.total_exact) return b.total_exact - a.total_exact
+                for (const field of STAGE_TIEBREAK_FIELDS) {
+                  if (b[field] !== a[field]) return b[field] - a[field]
+                }
                 return a.alias.localeCompare(b.alias)
               })
               let currentRank = 1
               return sorted.map((user, index) => {
                 if (index > 0) {
                   const prev = sorted[index - 1]
-                  if (user.total_points !== prev.total_points || user.total_exact !== prev.total_exact) {
+                  const stillTied = user.total_points === prev.total_points
+                    && user.total_exact === prev.total_exact
+                    && STAGE_TIEBREAK_FIELDS.every(field => user[field] === prev[field])
+                  if (!stillTied) {
                     currentRank = index + 1
                   }
                 }
