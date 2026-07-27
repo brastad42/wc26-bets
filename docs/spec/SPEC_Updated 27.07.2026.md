@@ -129,9 +129,8 @@ Chat moderation (soft-delete), Rules editor.
   change the outcome used for scoring.
 - Computed on the fly, never stored.
 
-**Implementation note:** this rule is currently implemented independently in 5
-places (4× JavaScript, 1× SQL) with no shared source of truth. Functionally
-consistent as of this audit, but a risk for future drift — see fix backlog.
+**Implementation note:** this rule is now consolidated in one shared source of truth in lib/scoring.js (it used to be implemented independently in 5
+places 4× JavaScript, 1× SQL.) 
 
 ## 7. Security model (explicit, accepted risk)
 
@@ -171,10 +170,12 @@ revisiting only if the group grows beyond people who'd have no reason to poke at
 
 These surfaced from the audit and need a call before being turned into CC work:
 
-1. **Leaderboard tiebreak mismatch.** Rules page promises a per-stage exact-hits
+1. **Leaderboard tiebreak mismatch.** Solved (Rules page promises a per-stage exact-hits
    tiebreak; code does alphabetical. Options: (a) implement the documented
    per-stage tiebreak, or (b) fix the Rules copy to say "alphabetical." Cheaper fix
    is (b); more correct-to-original-spec fix is (a).
+   - SOLVED
+   
 2. **`/stats` route vs. "Awards" label.** Cosmetic only (file/route name vs.
    on-screen text) — rename the route, or leave it and just note it in docs.
 3. **`CLAUDE.md`.** Referenced in earlier working notes as present in the repo
@@ -187,6 +188,8 @@ These surfaced from the audit and need a call before being turned into CC work:
    Candidate for consolidation into a shared module + calling it from the DB
    function via a matching, well-tested `CASE` — or accept the duplication as a
    known, documented risk.
+   - SOLVED
+
 
 ## 10. Deviations from the original MVP spec
 
